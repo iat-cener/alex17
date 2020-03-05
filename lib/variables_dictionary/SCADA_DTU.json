@@ -1,0 +1,263 @@
+[
+  {
+    "name": {
+      "default": "oil_temperature_gear_box",
+      "cf": "",
+      "open_oa": "",
+      "iec_61400-25": "",
+      "e-WindLidar": "",
+      "grib": "",
+      "other": []
+    },
+    "description": "The temperature of the turbine gear-box.",
+    "units": "deg C",
+    "ref": {
+      "nvs": ""
+    },
+    "netcdf": {
+      "var_type": "float",
+      "other": ""
+    }
+  },
+  {
+    "name": {
+      "default": "oil_temperature_main_bearing",
+      "cf": "",
+      "open_oa": "",
+      "iec_61400-25": "",
+      "e-WindLidar": "",
+      "grib": "",
+      "other": []
+    },
+    "description": "The temperature of the turbine main bearing.",
+    "units": "deg C",
+    "ref": {
+      "nvs": ""
+    },
+    "netcdf": {
+      "var_type": "float",
+      "other": ""
+    }
+  },
+  {
+    "name": {
+      "default": "generator_temperature",
+      "cf": "",
+      "open_oa": "",
+      "iec_61400-25": "",
+      "e-WindLidar": "",
+      "grib": "",
+      "other": []
+    },
+    "description": "The temperature of the turbine generator.",
+    "units": "deg C",
+    "ref": {
+      "nvs": ""
+    },
+    "netcdf": {
+      "var_type": "float",
+      "other": ""
+    }
+  },
+  {
+    "name": {
+      "default": "inside_nacelle_temperature ",
+      "cf": "",
+      "open_oa": "",
+      "iec_61400-25": "",
+      "e-WindLidar": "",
+      "grib": "",
+      "other": []
+    },
+    "description": "The temperature inside the nacelle.",
+    "units": "deg C",
+    "ref": {
+      "nvs": ""
+    },
+    "netcdf": {
+      "var_type": "float",
+      "other": ""
+    }
+  },
+  {
+    "name": {
+      "default": "air_temperature ",
+      "cf": "",
+      "open_oa": "",
+      "iec_61400-25": "",
+      "e-WindLidar": "",
+      "grib": "",
+      "other": []
+    },
+    "description": "The temperature outside the turbine.",
+    "units": "deg C",
+    "ref": {
+      "nvs": ""
+    },
+    "netcdf": {
+      "var_type": "float",
+      "other": ""
+    }
+  },   
+  {
+    "name": {
+      "default": "connected_to_grid",
+      "cf": "",
+      "open_oa": "",
+      "iec_61400-25": "",
+      "e-WindLidar": "",
+      "grib": "",
+      "other": []
+    },
+    "description": "A status signal of wind turbine indicating whether the turbine is connected to the grid, value 0 - not connected, 1 - connected.",
+    "units": "",
+    "ref": {
+      "nvs": ""
+    },
+    "netcdf": {
+      "var_type": "Boolean",
+      "other": ""
+    }
+  },
+  {
+    "name": {
+      "default": "turbine_available",
+      "cf": "",
+      "open_oa": "",
+      "iec_61400-25": "",
+      "e-WindLidar": "",
+      "grib": "",
+      "other": []
+    },
+    "description": "A status signal of wind turbine indicating whether the turbine is available for power production, value 0 - not available, 1 - available",
+    "units": "",
+    "ref": {
+      "nvs": ""
+    },
+    "netcdf": {
+      "var_type": "Boolean",
+      "other": ""
+    }
+  },  
+  {
+    "name": {
+      "default": "turbine_shutdown",
+      "cf": "",
+      "open_oa": "",
+      "iec_61400-25": "",
+      "e-WindLidar": "",
+      "grib": "",
+      "other": []
+    },
+    "description": "A status signal of wind turbine indicating whether the turbine is switched off, value 0 - switched off, 1 - switched on.",
+    "units": "",
+    "ref": {
+      "nvs": ""
+    },
+    "netcdf": {
+      "var_type": "Boolean",
+      "other": ""
+    }
+  },
+  {
+    "name": {
+      "default": "turbine_yawing",
+      "cf": "",
+      "open_oa": "",
+      "iec_61400-25": "",
+      "e-WindLidar": "",
+      "grib": "",
+      "other": []
+    },
+    "description": "A status signal of wind turbine indicating whether the turbine is yawing, value 0 - not yawing, 1 - yawing",
+    "units": "",
+    "ref": {
+      "nvs": ""
+    },
+    "netcdf": {
+      "var_type": "Boolean",
+      "other": ""
+    }
+  },
+  {
+    "name": {
+      "default": "turbine_yawing_direction",
+      "cf": "",
+      "open_oa": "",
+      "iec_61400-25": "",
+      "e-WindLidar": "",
+      "grib": "",
+      "other": []
+    },
+    "description": "The direction in which the turbine is yawing, value 0 - clockwise, 1 - anticlockwise.",
+    "units": "",
+    "ref": {
+      "nvs": ""
+    },
+    "netcdf": {
+      "var_type": "Boolean",
+      "other": ""
+    }
+  },
+  {
+    "name": {
+      "default": "turbine_braking",
+      "cf": "",
+      "open_oa": "",
+      "iec_61400-25": "",
+      "e-WindLidar": "",
+      "grib": "",
+      "other": []
+    },
+    "description": "A status signal of wind turbine indicating that the turbine is braking of the rotor motion.",
+    "units": "s",
+    "ref": {
+      "nvs": ""
+    },
+    "netcdf": {
+      "var_type": "Boolean",
+      "other": ""
+    }
+  },
+  {
+    "name": {
+      "default": "emergency_stop",
+      "cf": "",
+      "open_oa": "",
+      "iec_61400-25": "",
+      "e-WindLidar": "",
+      "grib": "",
+      "other": []
+    },
+    "description": "A status signal of wind turbine indicating that the emergency stop is being executed, value 0 - emergency stop not active, 1 - emergency stop active.",
+    "units": "s",
+    "ref": {
+      "nvs": ""
+    },
+    "netcdf": {
+      "var_type": "Boolean",
+      "other": ""
+    }
+  },           
+  {
+    "name": {
+      "default": "controller_time_offset",
+      "cf": "",
+      "open_oa": "",
+      "iec_61400-25": "",
+      "e-WindLidar": "",
+      "grib": "",
+      "other": []
+    },
+    "description": "A status signal of wind turbine indicating the time offset the controller system has.",
+    "units": "s",
+    "ref": {
+      "nvs": ""
+    },
+    "netcdf": {
+      "var_type": "float",
+      "other": ""
+    }
+  }
+                                   
+]
