@@ -6,7 +6,8 @@ import utm
 import xarray as xr
 
 from lib.variables_dictionary.variables import Variables
-from lib.WrfReader import WrfReader
+from lib.variables_dictionary.variables import nc_global_attributes_from_yaml
+
 
 
 def get_height_index(f_get_column):
@@ -21,28 +22,11 @@ def get_height_index(f_get_column):
 
 def create_nc_file(output_dataset, variables_dimensions, variables_indexes, var_dict, variables_to_write):
     for i in range(len(variables_dimensions)):
-        _ = create_dimension(output_dataset, variables_dimensions[i], var_dict, variables_indexes[i])
+        _ = var_dict.nc_create_dimension(output_dataset, variables_dimensions[i], variables_indexes[i])
     variables = {}
     for var_name in variables_to_write:
-        variables[var_name[0]] = create_variable(output_dataset, var_name[0], variables_dimensions, var_dict)
+        variables[var_name[0]] = var_dict.nc_create(output_dataset, var_name[0], variables_dimensions)
     return variables
-
-
-def create_dimension(output_dataset, var_name, var_dict, data):
-    output_dataset.createDimension(var_name, len(data))
-    dim = var_dict.nc_create(output_dataset, var_name, (var_name,))
-    dim[:] = data
-    return dim
-
-
-def create_variable(output_dataset, variable_name, dimensions, var_dict):
-    # create the variable
-    var = var_dict.nc_create(
-        output_dataset,
-        variable_name,
-        dimensions)
-    return var
-
 
 def time_from_str(time_str):
     ###  str: 2018-09-30 00:00,
@@ -89,6 +73,7 @@ def create_alex17_file_1(file_1_path, f_get_column, variables_to_write):
     variables_indexes = [met_mast_locations['Name'].values, height_index, time_index]
     variables_dimensions = ('id', 'height', 'time')
     variables = create_nc_file(output_dataset, variables_dimensions, variables_indexes, var_dict, variables_to_write)
+    nc_global_attributes_from_yaml(output_dataset, './config/Marinet.yaml')
 
     # fill the output file with results
     for index, row in met_mast_locations.iterrows():
@@ -132,6 +117,7 @@ def create_alex17_file_2(file_path, f_get_point, variables_to_write):
     variables_indexes = [time_index, height_index, easting_index, northing_index]
     variables_dimensions = ('time', 'height', 'easting', 'northing')
     variables = create_nc_file(output_dataset, variables_dimensions, variables_indexes, var_dict, variables_to_write)
+    nc_global_attributes_from_yaml(output_dataset, './config/Marinet.yaml')
 
     # fill the output file with results
     for i_x in range(len(easting_index)):
@@ -159,7 +145,7 @@ def create_alex17_file_3(file_path, f_get_column, variables_to_write):
 
     # ---------------------------- create indexes
     # y - northing[m]
-    sampling_locations = pd.read_csv('../ALEX17_inputs/validation_ZTransect_XYZ.csv')
+    sampling_locations = pd.read_csv('./ALEX17_inputs/validation_ZTransect_XYZ.csv')
     sampling_locations.sort_values('northing[m]', inplace=True)
     northing_index = sampling_locations['northing[m]'].values
     # time
@@ -178,6 +164,7 @@ def create_alex17_file_3(file_path, f_get_column, variables_to_write):
     variables_indexes = [time_index, height_index, northing_index]
     variables_dimensions = ('time', 'height', 'northing')
     variables = create_nc_file(output_dataset, variables_dimensions, variables_indexes, var_dict, variables_to_write)
+    nc_global_attributes_from_yaml(output_dataset, './config/Marinet.yaml')
 
     # fill the output file with results
     for i_y in range(len(northing_index)):

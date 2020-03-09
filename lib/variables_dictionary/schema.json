@@ -1,7 +1,7 @@
 {
   "$id": "http://example.com/root.json",
   "type": "array",
-  "title": "WINDACO Root Schema",
+  "title": "WIDACO Root Schema",
   "items": {
     "$id": "#/items",
     "type": "object",
@@ -61,11 +61,11 @@
               "MetAlt1HorWdSpd"
             ]
           },
-          "e-WindLidar": {
-            "$id": "#/items/properties/name/properties/e-WindLidar",
+          "lidaco": {
+            "$id": "#/items/properties/name/properties/lidaco",
             "type": "string",
-            "title": "e-WindLidar variable name",
-            "description": "e-WindLidar variable names. https://zenodo.org/record/2478051#.XR24DKeQ3y8",
+            "title": "LIDACO variable name",
+            "description": "Lidar Data Converter variable name. https://github.com/e-WindLidar/Lidaco",
             "default": "",
             "examples": [
               "vertical_wind_speed"

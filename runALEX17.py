@@ -1,15 +1,15 @@
 import lib.alex17_functions
-
+import lib.WrfReader
 
 # ['standard_name', 'short_name']
 variables_to_write = [['eastward_wind', 'U'],
                       ['northward_wind', 'V'],
                       ['upward_air_velocity', 'W'],
                       ['air_potential_temperature', 'Th'],
-                      ['TKE', 'TKE']]
+                      ['specific_turbulent_kinetic_energy', 'TKE']]
 
 # a class for reading the simulation results
-wrf_inp = lib.alex17_functions.WrfReader(variables_to_write)
+wrf_inp = lib.WrfReader.WrfReader(variables_to_write)
 f_get_column = wrf_inp.get_column  # (lat, lon) -> (time, height, variables)
 f_get_point = wrf_inp.get_point  # (lat, lon, height) -> (time, variables)
 # f_get_point(42.695, -1.558, 100)

@@ -1,18 +1,18 @@
 [
   {
     "name": {
-      "default": "altitude",
-      "cf": "altitude",
+      "default": "height",
+      "cf": "height",
       "open_oa": "",
       "iec_61400-25": "MetAlt1Alt",
-      "e-WindLidar": "",
-      "grib": "8",
-      "other": ["altitude"]
+      "lidaco": "",
+      "grib": "",
+      "other": ["height"]
     },
-    "description": "Altitude is the (geometric) height above the geoid, which is the reference geopotential surface. The geoid is similar to mean sea level.",
+    "description": "Height is the vertical distance above the surface.",
     "units": "m",
     "ref": {
-      "nvs": "http://vocab.nerc.ac.uk/collection/P07/current/CFSN0028"
+      "nvs": "http://vocab.nerc.ac.uk/collection/P07/current/CFSN0638/"
     },
     "netcdf": {
       "var_type": "float",
@@ -26,7 +26,7 @@
       "cf": "wind_speed",
       "open_oa": "windspeed_ms",
       "iec_61400-25": "MetAlt1HorWdSpd",
-      "e-WindLidar": "",
+      "lidaco": "",
       "grib": "31",
       "other": [
         "ws",
@@ -50,7 +50,7 @@
       "cf": "upward_air_velocity",
       "open_oa": "",
       "iec_61400-25": "MetAlt1VerWdSpd",
-      "e-WindLidar": "vertical_wind_speed",
+      "lidaco": "vertical_wind_speed",
       "grib": "",
       "other": [
         "",
@@ -73,7 +73,7 @@
       "cf": "wind_to_direction",
       "open_oa": "",
       "iec_61400-25": "MetAlt1HorWdDir",
-      "e-WindLidar": "",
+      "lidaco": "",
       "grib": "",
       "other": [
         "",
@@ -99,7 +99,7 @@
       "cf": "",
       "open_oa": "",
       "iec_61400-25": "MetAlt1VerWdDir",
-      "e-WindLidar": "",
+      "lidaco": "",
       "grib": "",
       "other": []
     },
@@ -119,7 +119,7 @@
       "cf": "air_temperature",
       "open_oa": "",
       "iec_61400-25": "MetAlt1Tmp",
-      "e-WindLidar": "",
+      "lidaco": "",
       "grib": "11 E130",
       "other": [
         "temperature",
@@ -142,7 +142,7 @@
       "cf": "relative_humidity",
       "open_oa": "",
       "iec_61400-25": "MetAlt1Hum",
-      "e-WindLidar": "",
+      "lidaco": "",
       "grib": "52 E157",
       "other": [
         "humidity"
@@ -164,7 +164,7 @@
       "cf": "air_pressure",
       "open_oa": "",
       "iec_61400-25": "MetAlt1Pres",
-      "e-WindLidar": "",
+      "lidaco": "",
       "grib": "1",
       "other": [
         "pressure"
@@ -186,7 +186,7 @@
       "cf": "time",
       "open_oa": "",
       "iec_61400-25": "SecondSinceEpoch",
-      "e-WindLidar": "",
+      "lidaco": "",
       "grib": "",
       "other": [
         "t",
@@ -209,13 +209,13 @@
       "cf": "",
       "open_oa": "",
       "iec_61400-25": "W",
-      "e-WindLidar": "",
+      "lidaco": "",
       "grib": "",
       "other": [
         "ActivePower"
       ]
     },
-    "description": "Potencia active del generador",
+    "description": "Potencia active del generador. Generación de potencia activa.",
     "units": "kW",
     "ref": {
       "nvs": ""
@@ -231,7 +231,7 @@
       "cf": "",
       "open_oa": "",
       "iec_61400-25": "DmdW",
-      "e-WindLidar": "",
+      "lidaco": "",
       "grib": "",
       "other": [
         "ActLimit_Power"
@@ -253,7 +253,7 @@
       "cf": "",
       "open_oa": "",
       "iec_61400-25": "PtAngValBl1",
-      "e-WindLidar": "",
+      "lidaco": "",
       "grib": "",
       "other": [
         "BladeAngleA"
@@ -275,7 +275,7 @@
       "cf": "",
       "open_oa": "",
       "iec_61400-25": "Dir",
-      "e-WindLidar": "",
+      "lidaco": "",
       "grib": "",
       "other": [
         "NacelleDirection"
@@ -297,7 +297,7 @@
       "cf": "",
       "open_oa": "",
       "iec_61400-25": "TurSt",
-      "e-WindLidar": "",
+      "lidaco": "",
       "grib": "",
       "other": [
         "OperationState"
@@ -319,7 +319,7 @@
       "cf": "",
       "open_oa": "",
       "iec_61400-25": "RotSpd",
-      "e-WindLidar": "",
+      "lidaco": "",
       "grib": "",
       "other": [
         "OperationState"

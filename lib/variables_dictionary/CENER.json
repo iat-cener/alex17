@@ -5,7 +5,7 @@
       "cf": "",
       "open_oa": "",
       "iec_61400-25": "",
-      "e-WindLidar": "",
+      "lidaco": "",
       "grib": "",
       "other": []
     },
@@ -19,14 +19,73 @@
       "other": ""
     }
   },
-
+  {
+    "name": {
+      "default": "specific_turbulent_kinetic_energy",
+      "cf": "",
+      "open_oa": "",
+      "iec_61400-25": "",
+      "lidaco": "",
+      "grib": "",
+      "other": ["TKE"]
+    },
+    "description": "Specific means per unit mass. Turbulent kinetic energy is the kinetic energy of chaotic fluctuations of the fluid flow.",
+    "units": "J kg-1",
+    "ref": {
+      "nvs": ""
+    },
+    "netcdf": {
+      "var_type": "float",
+      "other": ""
+    }
+  },
+  {
+    "name": {
+      "default": "altitude",
+      "cf": "altitude",
+      "open_oa": "",
+      "iec_61400-25": "",
+      "lidaco": "",
+      "grib": "8",
+      "other": []
+    },
+    "description": "Altitude is the (geometric) height above the geoid, which is the reference geopotential surface. The geoid is similar to mean sea level.",
+    "units": "m",
+    "ref": {
+      "nvs": "http://vocab.nerc.ac.uk/collection/P07/current/CFSN0028/"
+    },
+    "netcdf": {
+      "var_type": "float",
+      "other": ""
+    }
+  },
+  {
+    "name": {
+      "default": "air_potential_temperature",
+      "cf": "air_potential_temperature",
+      "open_oa": "",
+      "iec_61400-25": "",
+      "lidaco": "",
+      "grib": "13",
+      "other": ["Th"]
+    },
+    "description": "Air potential temperature is the temperature a parcel of air would have if moved dry adiabatically to a standard pressure, typically representative of mean sea level pressure. To specify the standard pressure to which the quantity applies, provide a scalar coordinate variable with standard name reference_pressure.",
+    "units": "K",
+    "ref": {
+      "nvs": "http://vocab.nerc.ac.uk/collection/P07/current/CFSN0014/"
+    },
+    "netcdf": {
+      "var_type": "float",
+      "other": ""
+    }
+  },
   {
     "name": {
       "default": "northward_wind",
       "cf": "northward_wind",
       "open_oa": "",
       "iec_61400-25": "",
-      "e-WindLidar": "",
+      "lidaco": "",
       "grib": "34 E132",
       "other": ["ws_y", "ws_v", "wind speed", "y_wind", "geostrophic_northward_wind"]
     },
@@ -46,7 +105,7 @@
       "cf": "eastward_wind",
       "open_oa": "",
       "iec_61400-25": "",
-      "e-WindLidar": "",
+      "lidaco": "",
       "grib": "33 E131",
       "other": ["ws_x", "ws_u", "wind speed", "x_wind", "geostrophic_eastward_wind"]
     },
@@ -66,7 +125,7 @@
       "cf": "wind_from_direction",
       "open_oa": "",
       "iec_61400-25": "",
-      "e-WindLidar": "",
+      "lidaco": "",
       "grib": "31",
       "other": []
     },
@@ -86,7 +145,7 @@
       "cf": "longitude",
       "open_oa": "",
       "iec_61400-25": "",
-      "e-WindLidar": "",
+      "lidaco": "",
       "grib": "",
       "other": []
     },
@@ -106,7 +165,7 @@
       "cf": "latitude",
       "open_oa": "",
       "iec_61400-25": "",
-      "e-WindLidar": "",
+      "lidaco": "",
       "grib": "",
       "other": []
     },
@@ -126,7 +185,7 @@
       "cf": "",
       "open_oa": "",
       "iec_61400-25": "",
-      "e-WindLidar": "",
+      "lidaco": "",
       "grib": "",
       "other": []
     },
@@ -146,7 +205,7 @@
       "cf": "",
       "open_oa": "",
       "iec_61400-25": "",
-      "e-WindLidar": "",
+      "lidaco": "",
       "grib": "",
       "other": []
     },
@@ -166,7 +225,7 @@
       "cf": "",
       "open_oa": "",
       "iec_61400-25": "",
-      "e-WindLidar": "",
+      "lidaco": "",
       "grib": "",
       "other": []
     },

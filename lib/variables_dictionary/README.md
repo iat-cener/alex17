@@ -1,4 +1,4 @@
-# Variables dictionary for wind energy.
+# Variables dictionary for wind energy
 The dictionary allows definiton of the best practice of variable naming in the wind energy community. It is intended to be a dictionarry allowing translation betwean different naming conventions used by the community and we welcome colaborators willing to extend it.
 
 # Not yet-another naming convention!
@@ -14,7 +14,7 @@ var_dict = variables.Variables()
 metadata = var_dict.lookup('time')
 ```
 
-# More than a dictionry.
+# More than a dictionary
 The dictionarry includes additional metadata necesarry for use with NetCDF files
 ```python
 # def nc_create(self, output_dataset, name, dimensions, standard_name = ""):
