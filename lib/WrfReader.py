@@ -1,147 +1,92 @@
-import os
-import utm
-import glob
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Created on Mon Mar 16 17:05:28 2020
+Tool for handling WRF files
+@authors
+    : Pawel Gancarski (pgancarski@cener.com)
+    : Javier Sanz Rodrigo (jsrodrigo@cener.com)
+    : Roberto Chavez (roberto.chavez@ul.com)
+"""
+import utm, glob, argparse, netCDF4, datetime
 import numpy as np
 import pandas as pd
-import netCDF4
-import datetime
 import xarray as xr
 import scipy.spatial.distance as scipy_dist
 
 from wrf import extract_times, extract_dim, ALL_TIMES, ll_to_xy, xy_to_ll
-from lib.aux_functions import *
+from lib.nc_read_functions import get_zagl, readAllvars, get_index_of_subset_domain
 
 
-def build_lat_lon_table(nc_file, i_we, i_sn):
-    out = np.empty([len(i_we), len(i_sn), 2])
-
-    for i in range(len(i_we)):
-        for j in range(len(i_sn)):
-            out[i, j] = xy_to_ll(nc_file, i_we[i], i_sn[j])
-    return out
-
+# %%
 
 class WrfReader:
-    """
-    Tool for handling WRF files
+    '''
+    Class to read the wrf output files and store a subset of the data varirables.
+    The subset is used to make it RAM efficient as
 
+	Parameters
+	----------
+	wrf_files_path : str
+		path of wrf output files
 
-    @authors
-        : Pawel Gancarski (pgancarski@cener.com)
-        : Javier Sanz Rodrigo (jsrodrigo@cener.com)
-        : Pedro Correia (pmfernandez@cener.com)
-        : Roberto Chavez (rchavez.arroyo@gmail.com)
-    """
+	wrf_domain_number : str
+		number of the wrf domain for the data to get extracted.
 
-    def __init__(self, variables_to_write):
-        # %% --------------- INPUT INFORMATION AND CASE DEFINITIONS ------------------------------------
-        '''
-        INPUTS:
+	dateLimits : list
+		2-element list with the datefrom - dates to which the data is to be extracted
 
-        dom = 2			     # domain to extract time series from wrfout_d0[dom]*
-        #dxmeso = 9000.0	 # horizontal resolution of the mesoscale grid
-        #L = 45000.0         # Length of microscale domain Lx = Ly for spatial avaraging
-                             # L = 0            linear interpolation to site coordinates
-                             # 0 < L < dxmeso   nearest grid point
-                             # L > dxmeso       spatial average over Nav points
-        '''
-        # Station coordinates
-        # identifier. only serves for naming files (or folders) to output the data
-        siteID = 'Alaiz'
-        # degrees N
-        lat_s = 42.695
-        # degrees E
-        lon_s = -1.558
-        # Length of the box to stract data (horizontally)
-        L = 45000
-        # domain number of the WRF
-        dom = 3
+	variables_to_extract : list
+		Name of the WRF variables to extract from the wrfout files.
+        You should write the names as they are stored in the ncfile except for the following variable:
+            - Th = potential temperature which is calculated as:
+                T (perturbation potential temperature) + T0(base state temperature)
+            - TENDENCIES=advection and pressure gradient terms from the momentum budget,
+              and potential temp. budget which are assumed to be stored under the names:
+                'RU_TEND_ADV','RV_TEND_ADV','RU_TEND_PGF','RV_TEND_PGF','T_TEND_ADV'
 
-        if dom == 1:
-            dxmeso = 27000
-        elif dom == 2:
-            dxmeso = 9000.0
-        elif dom == 3:
-            dxmeso = 3000
+	subset_of_wrfDomain -optional: list
+		3-element list with the [lat,lon, L=optinal] associated with the central coordinates and extension
+        of a subset domain to make to whole WRF reading more memory efficient
+    '''
 
-        print(
-            'processing ' + siteID + ' lon:' + str(lon_s) + ' lat:' + str(lat_s) + ' L:' + str(L) + ' dom:' + str(dom))
+    def __init__(self, wrf_files_path, wrf_domain_number, dateLimits, variables_to_extract, subset_of_wrfDomain=None):
 
-        # ----------------------------------------------------------------------
-        # Load simulation data
-        # ----------------------------------------------------------------------
-        # Simulation filename
-        wrfOutput = './ALEX17_inputs/'
-        outputFolder = './out/' + siteID + '/'
+        datefrom = np.datetime64(pd.to_datetime(dateLimits[0], format='%Y-%m-%d %H:%M:%S', errors='ignore'))
+        dateto = np.datetime64(pd.to_datetime(dateLimits[1], format='%Y-%m-%d %H:%M:%S', errors='ignore'))
 
-        # Define the dates from and to in str format for which you want to limit
-        # the extraction of wrf data
-        datefromSys = "2018-09-30 00:00"
-        datetoSys = "2018-10-04 00:00"
-
-        # helps to define the name of the output
-        simID = ''
-        pbl = 'MYNN2.5'
-
-        # Spinup discarded hours
-        spinup = 24
-
-        Nav = int(L / dxmeso) + 1  # number of points to include in the spatial averaging box
-        simdes = ': WRF3.8.1, NEWA setup, ERA5, ' + pbl + ' 27km > 9km >3km. Data from d0' + str(dom) + ' at ' + str(
-            int(dxmeso / 1000)) + ' km res, Lav = ' + str(int(L / 1000)) + ' km'
+        # So far, spinup discarded hours are hardcoded
+        spinup = 0
 
         '''
-        Name of the WRF variables to extract from the wrfout files.
-        You should write the names as they are stored in the ncfile except for the following variables:
-        - POT = potential temperature which is calculated from T (perturbation potential temperature) + T0(base state temperature)
-        - TENDENCIES=advection and pressure gradient terms from the momentum budget, and potential temp. budget which
-                    are assumed to be stored under the names: 'RU_TEND_ADV','RV_TEND_ADV','RU_TEND_PGF','RV_TEND_PGF','T_TEND_ADV'
+        List with all files to read. This part of code may difer depending on how you name and store
+        the wrf output files. The nc_files list sould contain all the files over which the code
+        is going to loop and concatenate variables in "Time" dimension axis.
         '''
-        varsWRF = ['T2', 'TSK', 'UST', 'PSFC', 'HFX', 'LH', 'RMOL', 'U', 'V', 'W', 'POT', 'TENDENCIES', 'TKE_PBL']
-        self.variables_to_write = variables_to_write
-
-        # Coriolis calculation
-        fc = coriolis(lat_s)
-
-        # latlon to utm
-        utmX_s, utmY_s, utm_zonenumber_s, utm_zoneletter_s = utm.from_latlon(lat_s, lon_s)
-
-        '''
-        List with all files to read. Tthis part of code may difer depending on 
-        how you name and store the wrf output files the main idea is that the wrfoutfiles 
-        list, contains all the files over which the code is going to loop and concatenate
-        in "Time" dimension the variables. e.g. wrfout is stored by weekly simulations
-        and you need several days contained between the end of one and begining of the second, 
-        then both files should be listed in the wrfoutfiles list.  Or maybe you want several weeks
-        of data concatenated, then all the wrf with those data sould be listed here.
-        '''
-        wrfoutfiles = []
-        folders = [sorted(glob.glob(wrfOutput + '*'))]
-        fileN = 'wrfout_d0' + str(dom)
+        nc_files_list = []
+        folders = [sorted(glob.glob(wrf_files_path + '*'))]
+        # notice that it is assumed that wrf files are named with a convention of wrfout_d0xx
+        fileN = 'wrfout_d0' + str(wrf_domain_number)
         for ii in folders[0]:
             # wrfoutfiles.append(sorted(glob.glob(ii+'/WRF/'+fileN+'*'))[0])
             if ii.split('/')[-1].startswith(fileN):
-                wrfoutfiles.append(ii)
+                nc_files_list.append(ii)
 
-        Nfiles = len(wrfoutfiles)
+        Nfiles = len(nc_files_list)
 
-        print(str(Nfiles) + ' ' + " files found for L=" + str(L) + ' and d0' + str(dom))
-        print("NOTE. It is assumed that every ncfile contains an initialized Run for which " + str(
-            spinup) + " h of spinup are discarded")
+        print(str(Nfiles) + ' files found for wrfout_d0' + str(wrf_domain_number) + ' outputs')
+        print("NOTE. It is assumed that every ncfile contains an initialized Run for which " +
+              str(spinup) + " h of spinup are discarded")
 
-        # Create output directory
-        if not os.path.exists(outputFolder):
-            os.makedirs(outputFolder)
-
-        datefrom = np.datetime64(pd.to_datetime(datefromSys, format='%Y-%m-%d %H:%M'))
-        dateto = np.datetime64(pd.to_datetime(datetoSys, format='%Y-%m-%d %H:%M'))
+        print('The following variables are to be extracted ')
+        print(variables_to_extract)
 
         # loop over all files found
-        for ii, file in enumerate(wrfoutfiles):
+        for ii, file in enumerate(nc_files_list):
 
-            # ii=0; file = wrfoutfiles[ii]
-            print("Processing file :", file)
+            print("Reading netCDF data from file:", file)
 
+            # open the netcdf file
             f2 = netCDF4.Dataset(file)
 
             # get the netCDF time data
@@ -152,45 +97,50 @@ class WrfReader:
             # protects from empty dates
             if sum(np.logical_and(ncTimes >= datefrom, ncTimes <= dateto)) != 0:
                 if ii == 0:
-                    # makes sure spinup dates are discared while filtering only period between desired dates
-                    self.iTimes = np.logical_and.reduce((ncTimes >= spinupDate, ncTimes >= datefrom, ncTimes <= dateto))
+                    # if no subset_of_wrfDomain is chosen, it extracts all domain grid points
+                    if subset_of_wrfDomain is None:
+                        iBT = np.arange(0, extract_dim(f2, 'bottom_top'))
+                        iSN = np.arange(0, extract_dim(f2, 'south_north'))
+                        iWE = np.arange(0, extract_dim(f2, 'west_east'))
+                    else:
+                        lat_s, lon_s, L = subset_of_wrfDomain[0], subset_of_wrfDomain[1], subset_of_wrfDomain[2]
+                        # get the indexes of a subset domain for memory efficient purposes
+                        iBT, iSN, iWE = get_index_of_subset_domain(f2, lat_s, lon_s, L)
 
-                    # nummber of grid centered points
-                    zdim = extract_dim(f2, 'bottom_top')
-                    xdim = extract_dim(f2, 'west_east')
-                    ydim = extract_dim(f2, 'south_north')
+                    # makes sure spinup dates are discarded while filtering only period between desired dates
+                    iTimes = np.logical_and.reduce((ncTimes >= spinupDate, ncTimes >= datefrom, ncTimes <= dateto))
 
-                    inear_WE, inear_SN = ll_to_xy(f2, lat_s, lon_s)
+                    # set the valid times
+                    self.times = ncTimes[iTimes]
+                    self.min_i_lat = min(iSN)
+                    self.min_i_lon = min(iWE)
 
-                    iWE, iSN = getneighbours(Nav, inear_WE, inear_SN)
-
-                    self.min_i_lat = min(iWE)
-                    self.min_i_lon = min(iSN)
-                    iBT = np.arange(0, zdim)
-                    self.lat_lon = build_lat_lon_table(f2, iWE, iSN)
-                    timesSim = ncTimes[self.iTimes]
+                    self.lat_lon = np.concatenate((f2.variables.get('XLAT')[0:1, iSN, iWE],
+                                                   f2.variables.get('XLONG')[0:1, iSN, iWE]), axis=0)
 
                     # Build z above ground
-                    zagl = get_zagl(f2, self.iTimes, iBT, iSN, iWE)
+                    zagl = get_zagl(f2, iTimes, iBT, iSN, iWE)
 
-                    self.vDict = readAllvars(f2, varsWRF, self.iTimes, iBT, iSN, iWE, lat_s)
+                    self.variables_data = readAllvars(f2, variables_to_extract, iTimes, iBT, iSN, iWE)
+                    self.variables_names = self.variables_data.keys()
                     self.input_file = f2
 
                 else:
 
-                    self.iTimes = np.logical_and.reduce((ncTimes > spinupDate, ncTimes >= datefrom, ncTimes <= dateto))
+                    iTimes = np.logical_and.reduce((ncTimes > spinupDate, ncTimes >= datefrom, ncTimes <= dateto))
 
-                    timesSim = np.concatenate((timesSim, ncTimes[iTimes]))
+                    self.times = np.concatenate((self.times, ncTimes[iTimes]))
 
                     # concatenate z above ground
                     zaglTmp = get_zagl(f2, iTimes, iBT, iSN, iWE)
                     zagl = np.concatenate((zagl, zaglTmp), axis=0)
 
                     # concatenate every selected variable
-                    vDictTmp = readAllvars(f2, varsWRF, iTimes, iBT, iSN, iWE, lat_s)
+                    varsTmp = readAllvars(f2, variables_to_extract, iTimes, iBT, iSN, iWE)
 
-                    for iVar in vDictTmp.keys():
-                        self.vDict[iVar] = np.concatenate((vDict[iVar], vDictTmp[iVar]), axis=0)
+                    for iVar in varsTmp.keys():
+                        self.variables_data[iVar] = np.concatenate((self.variables_data[iVar], varsTmp[iVar]), axis=0)
+
                     f2.close()
             else:
                 print('File : ' + file + 'does not contain any valid dates')
@@ -199,28 +149,20 @@ class WrfReader:
         self.heights = np.nanmean(zagl, axis=(0, 2, 3))
 
         # Reference Time for the netcdf files
-        dateRef = np.datetime64(datetime.datetime(1970, 1, 1, 0, 0, 0))
+        self.referenceDate = np.datetime64(datetime.datetime(1970, 1, 1, 0, 0, 0))
 
-        # convert time stamp to "seconds since <dateRef>"
-        self.secsDiff = pd.Series(timesSim - dateRef).dt.total_seconds().values
+        # convert time stamp to "seconds since <referenceDate>"
+        self.seconds = pd.Series(self.times - self.referenceDate).dt.total_seconds().values
 
-        # TODO a hack here
-        # variables_to_write = [['eastward_wind', 'U'],
-        #                       ['northward_wind', 'V'],
-        #                       ['upward_air_velocity', 'W'],
-        #                       ['air_potential_temperature', 'Th'],
-        #                       ['TKE', 'TKE']]
-
-        # rename one invented variable name into another
-        self.vDict['Th'] = self.vDict.pop('POT')
-        self.vDict['TKE'] = self.vDict.pop('TKE_PBL')
+        # number of grid points in the subset wrf box
+        self.nt, self.nz, self.ny, self.nx = zagl.shape
 
     def __del__(self):
         if hasattr(self, 'input_file'):
             self.input_file.close()
 
     def get_indexes(self, lat, lon, height):
-        i_lat, i_lon = ll_to_xy(self.input_file, lat, lon)
+        i_lon, i_lat = ll_to_xy(self.input_file, lat, lon)
         i_h = np.searchsorted(self.heights, height)
         i_lat = i_lat - self.min_i_lat
         i_lon = i_lon - self.min_i_lon
@@ -234,19 +176,19 @@ class WrfReader:
         x_near, y_near = self.utm_from_indexes((i_lat, i_lon))
 
         if x_near > x:  # East from sampling point
-            i_lat = i_lat - 1
-
-        if y_near > y:  # North from sampling point
             i_lon = i_lon - 1
 
+        if y_near > y:  # North from sampling point
+            i_lat = i_lat - 1
+
         sw_point = (i_lat, i_lon, i_h)
-        se_point = (i_lat + 1, i_lon, i_h)
-        nw_point = (i_lat, i_lon + 1, i_h)
+        se_point = (i_lat, i_lon + 1, i_h)
+        nw_point = (i_lat + 1, i_lon, i_h)
         ne_point = (i_lat + 1, i_lon + 1, i_h)
 
         top_sw_point = (i_lat, i_lon, i_h + 1)
-        top_se_point = (i_lat + 1, i_lon, i_h + 1)
-        top_nw_point = (i_lat, i_lon + 1, i_h + 1)
+        top_se_point = (i_lat, i_lon + 1, i_h + 1)
+        top_nw_point = (i_lat + 1, i_lon, i_h + 1)
         top_ne_point = (i_lat + 1, i_lon + 1, i_h + 1)
 
         x_f, y_f = self.utm_from_indexes(ne_point)
@@ -280,11 +222,12 @@ class WrfReader:
         return points_indexes, weights
 
     def lat_lon_from_indexes(self, p):
-        [lat, lon] = self.lat_lon[p[0], p[1]]
+        [lat, lon] = self.lat_lon[:, p[0], p[1]]
+        # print(utm.from_latlon(lat, lon))
         return lat, lon
 
     def utm_from_indexes(self, p):
-        [lat, lon] = self.lat_lon[p[0], p[1]]
+        lat, lon = self.lat_lon_from_indexes(p)
         x, y, _, _ = utm.from_latlon(lat, lon)
         return x, y
 
@@ -295,12 +238,12 @@ class WrfReader:
 
     def get_all_vals(self, indexes):
         out_dict = {}
-        for _, var_name in self.variables_to_write:
-            if len(self.vDict[var_name].shape) == 4:
-                out_dict[var_name] = self.vDict[var_name][:, indexes[2], indexes[0], indexes[1]]
+        for var_name in self.variables_names:
+            if len(self.variables_data[var_name].shape) == 4:
+                out_dict[var_name] = self.variables_data[var_name][:, indexes[2], indexes[0], indexes[1]]
             else:
-                out_dict[var_name] = self.vDict[var_name][:, indexes[0], indexes[1]]
-        return pd.DataFrame(out_dict, index=self.secsDiff)
+                out_dict[var_name] = self.variables_data[var_name][:, indexes[0], indexes[1]]
+        return pd.DataFrame(out_dict, index=self.seconds)
 
     def interp_3d(self, lat, lon, height):
         x, y, _, _ = utm.from_latlon(lat, lon)
@@ -314,31 +257,34 @@ class WrfReader:
         return out
 
     def get_time(self, ):
-        return self.secsDiff
+        return self.seconds
 
     def get_height(self, ):
         return self.heights
+
+    def get_data(self, varName):
+        return self.variables_data[varName]
 
     def get_point(self, lat, lon, height):
 
         out = self.interp_3d(lat, lon, height)
 
-        coords = {'time': self.secsDiff,
-                  'variables': [x[1] for x in self.variables_to_write]}
+        coords = {'time': self.seconds,
+                  'variables': [x for x in self.variables_names]}
         dims = ('time', 'variables')
         out = xr.DataArray(out, coords=coords, dims=dims)
         return out
 
     def get_column(self, lat, lon):
-        shape = (len(self.secsDiff),
+        shape = (len(self.seconds),
                  len(self.heights),
-                 len(self.variables_to_write))
-        coords = {'time': self.secsDiff,
+                 len(self.variables_names))
+        coords = {'time': self.seconds,
                   'height': self.heights,
-                  'variables': [x[1] for x in self.variables_to_write]}
+                  'variables': [x for x in self.variables_names]}
         dims = ('time', 'height', 'variables')
         out = xr.DataArray(np.empty(shape), coords=coords, dims=dims)
 
-        for i_h in range(len(self.heights)-1):
+        for i_h in range(len(self.heights) - 1):
             out[:, i_h, :] = self.get_point(lat, lon, self.heights[i_h])
         return out

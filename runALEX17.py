@@ -1,17 +1,34 @@
 import lib.alex17_functions
 import lib.WrfReader
+import numpy as np
+import utm
 
-# ['standard_name', 'short_name']
-variables_to_write = [['eastward_wind', 'U'],
+# ['standard_name', 'wrf_short_name']
+variables_to_write = np.array([['eastward_wind', 'U'],
                       ['northward_wind', 'V'],
                       ['upward_air_velocity', 'W'],
                       ['air_potential_temperature', 'Th'],
-                      ['specific_turbulent_kinetic_energy', 'TKE']]
+                      ['specific_turbulent_kinetic_energy', 'TKE']])
 
+
+# SETUP THE WRF FILE READER
 # a class for reading the simulation results
-wrf_inp = lib.WrfReader.WrfReader(variables_to_write)
+wrf_files_path = './ALEX17_inputs/'
+wrf_domain_number = 3
+dateLimits = ["2018-09-30 00:00:00", "2018-10-04 00:00:00"]
+variables_to_extract = variables_to_write[:, 1]
+(lat, lon) = utm.to_latlon(612000, 4726000, 30, 'T')
+domain_of_interest = [lat, lon, 30e3]
+
+wrf_inp = lib.WrfReader.WrfReader(wrf_files_path, wrf_domain_number, dateLimits, variables_to_extract,
+                                  subset_of_wrfDomain=domain_of_interest)
+
+
+# DEFINE THE GET FUNCTIONS TO BE USED BY THE SCRIPT
 f_get_column = wrf_inp.get_column  # (lat, lon) -> (time, height, variables)
 f_get_point = wrf_inp.get_point  # (lat, lon, height) -> (time, variables)
+
+# TEST IF IT WORKS
 # f_get_point(42.695, -1.558, 100)
 # f_get_column(42.695, -1.558)
 
