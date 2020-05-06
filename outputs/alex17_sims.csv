@@ -1,0 +1,4 @@
+ID,Plot,Highlight,Ensemble,Save,Participant Number,Participant,Model Name,Model Type,Input,Approach,Remarks,Label
+alex17_00a,1,1,0,1,0,CENER,WRF,mesoscale,ERA5,ts,Reference simulation for microscale models,WRFref_meso_ts
+alex17_00b,1,1,0,1,0,CENER,WRF,mesoscale,ERA5,ts,NEWA mesoscale output,NEWA_meso_ts
+alex17_00c,1,1,0,1,0,CENER,WRF-WasP,meso-micro,ERA5,ba,NEWA outputs,NEWA_micro_ba
