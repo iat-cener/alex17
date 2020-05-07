@@ -9,3 +9,5 @@ jsonschema
 simplejson
 PyYAML
 rasterio
+numexpr
+numba

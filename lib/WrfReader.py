@@ -8,17 +8,26 @@ Tool for handling WRF files
     : Javier Sanz Rodrigo (jsrodrigo@cener.com)
     : Roberto Chavez (roberto.chavez@ul.com)
 """
-import utm, glob, argparse, netCDF4, datetime
+import utm, glob, netCDF4, datetime
 import numpy as np
 import pandas as pd
 import xarray as xr
-import scipy.spatial.distance as scipy_dist
-
-from wrf import extract_times, extract_dim, ALL_TIMES, ll_to_xy, xy_to_ll
+from functools import lru_cache
+from numba import jit
+from wrf import extract_times, extract_dim, ALL_TIMES, ll_to_xy
 from lib.nc_read_functions import get_zagl, readAllvars, get_index_of_subset_domain
 
-
 # %%
+
+@jit(nopython=True)
+def array_multiply_numba(a, x):
+    return a * x
+
+
+@jit(nopython=True)
+def array_add_numba(a, b):
+    return a + b
+
 
 class WrfReader:
     '''
@@ -161,6 +170,7 @@ class WrfReader:
         if hasattr(self, 'input_file'):
             self.input_file.close()
 
+    @jit(forceobj=True)
     def get_indexes(self, lat, lon, height):
         i_lon, i_lat = ll_to_xy(self.input_file, lat, lon)
         i_h = np.searchsorted(self.heights, height)
@@ -168,6 +178,7 @@ class WrfReader:
         i_lon = i_lon - self.min_i_lon
         return i_lat, i_lon, i_h
 
+    @jit(forceobj=True)
     def get_nearest_points(self, lat, lon, height):
         i_lat, i_lon, i_h = self.get_indexes(lat, lon, height)
         x, y, _, _ = utm.from_latlon(lat, lon)
@@ -236,25 +247,31 @@ class WrfReader:
         z = self.heights[p[2]]
         return x, y, z
 
-    def get_all_vals(self, indexes):
+    @lru_cache(maxsize=None)
+    def get_all_vals(self, i_lat, i_lon, i_h):
         out_dict = {}
         for var_name in self.variables_names:
             if len(self.variables_data[var_name].shape) == 4:
-                out_dict[var_name] = self.variables_data[var_name][:, indexes[2], indexes[0], indexes[1]]
+                out_dict[var_name] = self.variables_data[var_name][:, i_h, i_lat, i_lon]
             else:
-                out_dict[var_name] = self.variables_data[var_name][:, indexes[0], indexes[1]]
+                out_dict[var_name] = self.variables_data[var_name][:, i_lat, i_lon]
         return pd.DataFrame(out_dict, index=self.seconds)
 
     def interp_3d(self, lat, lon, height):
         x, y, _, _ = utm.from_latlon(lat, lon)
-
         nearest_points_indexes, weights = self.get_nearest_points(lat, lon, height)
-
-        out = self.get_all_vals(nearest_points_indexes[0]) * weights[0]
+        [i_lat, i_lon, i_h] = nearest_points_indexes[0]
+        vals = self.get_all_vals(i_lat, i_lon, i_h)
+        out = array_multiply_numba(vals.to_numpy(), weights[0])
         for i in range(1, len(nearest_points_indexes)):
-            out = out + self.get_all_vals(nearest_points_indexes[i]) * weights[i]
+            [i_lat, i_lon, i_h] = nearest_points_indexes[i]
+            out = array_add_numba(
+                out,
+                array_multiply_numba(self.get_all_vals(i_lat, i_lon, i_h).to_numpy(),
+                                     weights[i])
+            )
 
-        return out
+        return pd.DataFrame(out, index=self.seconds)
 
     def get_time(self, ):
         return self.seconds

@@ -51,7 +51,7 @@ def create_alex17_file_1(file_1_path, f_get_column, variables_to_write):
 
     # ---------------------------- create indexes
     # load the met mast locations
-    met_mast_locations = pd.read_csv('./ALEX17_inputs/validation_profiles_XYZ.csv')
+    met_mast_locations = pd.read_csv('./inputs/validation_profiles_XYZ.csv')
     utm_zone_number = 30
     utm_zone_letter = 'T'
 
@@ -145,7 +145,7 @@ def create_alex17_file_3(file_path, f_get_column, variables_to_write):
 
     # ---------------------------- create indexes
     # y - northing[m]
-    sampling_locations = pd.read_csv('./ALEX17_inputs/validation_ZTransect_XYZ.csv')
+    sampling_locations = pd.read_csv('./inputs/validation_ZTransect_XYZ.csv')
     sampling_locations.sort_values('northing[m]', inplace=True)
     northing_index = sampling_locations['northing[m]'].values
     # time
