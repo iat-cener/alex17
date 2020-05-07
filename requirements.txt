@@ -8,3 +8,4 @@ wrf-python
 jsonschema
 simplejson
 PyYAML
+rasterio
