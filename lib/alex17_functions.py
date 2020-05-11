@@ -4,12 +4,69 @@ import datetime
 import netCDF4
 import utm
 import xarray as xr
+import rasterio as rio
+import matplotlib.pyplot as plt 
 
 from lib.variables_dictionary.variables import Variables
 from lib.variables_dictionary.variables import nc_global_attributes_from_yaml
 
 
+def basemap_plot(src, masts, Z_transect, ref, ax):
+    # Add overviews to raster to plot faster at lower resolution (https://rasterio.readthedocs.io/en/latest/topics/overviews.html)
+    #from rasterio.enums import Resampling
+    #factors = [2, 4, 8, 16]
+    #dst = rio.open('./inputs/DTM_Alaiz_2m.tif', 'r+')
+    #dst.build_overviews(factors, Resampling.average)
+    #dst.update_tags(ns='rio_overview', resampling='average')
+    #dst.close()
+    A_ind = Z_transect['Name'].str.contains('A') # Tajonar ridge scan
+    B_ind = Z_transect['Name'].str.contains('B') # Elortz valley scan
+    C_ind = Z_transect['Name'].str.contains('C') # Alaiz ridge scan
+    oview = src.overviews(1)[2] # choose overview (0 is largest, -1 is the smallest)
+    topo = src.read(1, out_shape=(1, int(src.height // oview), int(src.width // oview)))
+    spatial_extent = [src.bounds.left - ref[0], src.bounds.right - ref[0], src.bounds.bottom - ref[1], src.bounds.top - ref[1]]
+    topo_ma = np.ma.masked_where(topo == 0 , topo, copy=True) 
+    topo_ma.shape
+    h_topo = ax.imshow(topo_ma, cmap='terrain', extent=spatial_extent, vmin=300, vmax=1200) #[left, right, bottom, top]
+    h_masts = ax.scatter(masts['x'], masts['y'], s = 10, marker='s', c='k', label = 'Masts')
+    h_A = ax.scatter(Z_transect[A_ind]['x'], Z_transect[A_ind]['y'], s = 2, marker='.', c='blue', label = 'A-transect')
+    h_B = ax.scatter(Z_transect[B_ind]['x'], Z_transect[B_ind]['y'], s = 2, marker='.', c='black', label = 'B-transect')
+    h_C = ax.scatter(Z_transect[C_ind]['x'], Z_transect[C_ind]['y'], s = 2, marker='.', c='red', label = 'C-transect')
+    for i, txt in enumerate(masts['Name']):
+        ax.annotate(txt, (masts['x'][i]+50, masts['y'][i]+50))   
+    ax.set_title('ALEX17 sites')
+    ax.set_xlabel('x [m]')
+    ax.set_ylabel('y [m]')
+    ax.legend(handles = [h_masts,h_A,h_B,h_C])
+    plt.colorbar(h_topo, ax = ax)
+    return [h_masts,h_A,h_B,h_C]
 
+    
+def Zprofile_plot(masts, Z_transect, ax):
+    A_ind = Z_transect['Name'].str.contains('A') # Tajonar ridge scan
+    B_ind = Z_transect['Name'].str.contains('B') # Elortz valley scan
+    C_ind = Z_transect['Name'].str.contains('C') # Alaiz ridge scan
+    h_topoZ = (Z_transect['z']-125.).plot.area(stacked=False, color = 'lightgrey', alpha = 1, ax = ax)
+    h_topoA = Z_transect[A_ind]['z'].plot.line(style = '.', color = 'blue', ms = 3, ax = ax)
+    h_topoB = Z_transect[B_ind]['z'].plot.line(style = '.', color = 'black', ms = 3, ax = ax)
+    h_topoC = Z_transect[C_ind]['z'].plot.line(style = '.', color = 'red', ms = 3, ax = ax)
+    masts_inZ = [] # index of Z_transect position nearest to each mast
+    for i, row in masts.iterrows():
+        d = np.sqrt((Z_transect['x'] - masts['x'][i])**2 + (Z_transect['y'] - masts['y'][i])**2)
+        masts_inZ.append(d[d == d.min()].index[0])
+    for x in masts_inZ:
+        ax.axvline(x, color = 'silver', linestyle = '--', zorder = 0)
+    ax.set_title('Z-transect profile at 125 m above ground level')
+    ax.set_xlabel('Z-transect position')
+    ax.set_ylabel('z [m]')
+    ax.set_axisbelow(True)
+    ax.yaxis.grid(zorder = 0)
+    ax.set_ylim([0,1000])
+    ax.set_xticks(masts_inZ)
+    ax.set_xticklabels(masts['Name'])
+    
+    return [h_topoZ, h_topoA, h_topoB, h_topoC]
+    
 def get_height_index(f_get_column):
     # height<1000m index
     max_height = 1000
