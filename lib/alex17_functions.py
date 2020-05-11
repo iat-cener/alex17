@@ -10,7 +10,6 @@ import matplotlib.pyplot as plt
 from lib.variables_dictionary.variables import Variables
 from lib.variables_dictionary.variables import nc_global_attributes_from_yaml
 
-
 def basemap_plot(src, masts, Z_transect, ref, ax):
     # Add overviews to raster to plot faster at lower resolution (https://rasterio.readthedocs.io/en/latest/topics/overviews.html)
     #from rasterio.enums import Resampling
@@ -42,7 +41,7 @@ def basemap_plot(src, masts, Z_transect, ref, ax):
     return [h_masts,h_A,h_B,h_C]
 
     
-def Zprofile_plot(masts, Z_transect, ax):
+def Ztransect_plot(masts, Z_transect, ax):
     A_ind = Z_transect['Name'].str.contains('A') # Tajonar ridge scan
     B_ind = Z_transect['Name'].str.contains('B') # Elortz valley scan
     C_ind = Z_transect['Name'].str.contains('C') # Alaiz ridge scan
