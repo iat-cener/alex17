@@ -10,6 +10,29 @@ import matplotlib.pyplot as plt
 from lib.variables_dictionary.variables import Variables
 from lib.variables_dictionary.variables import nc_global_attributes_from_yaml
 
+def read_sim(filename):
+    M = xr.open_dataset(filename)
+    U = M.eastward_wind
+    V = M.northward_wind
+    W = M.upward_air_velocity
+    Th = M.air_potential_temperature
+    TKE = M.specific_turbulent_kinetic_energy
+    S = (U**2 + V**2)**0.5
+    WD = (270-np.rad2deg(np.arctan2(V,U)))%360
+    WD.attrs['units'] = 'degrees from North'
+    WD.attrs['long_name'] = 'wind direction'
+    S.attrs['units'] = 'm s-1'
+    S.attrs['long_name'] = 'horizontal wind speed'
+    return U, V, W, Th, TKE, S, WD
+
+def read_obs(filename):
+    M = xr.open_dataset(filename)
+    S = M.wind_speed
+    WD = M.wind_from_direction
+    Sstd = M.wind_speed_std
+    return S, Sstd, WD
+
+
 def basemap_plot(src, masts, Z_transect, ref, ax):
     # Add overviews to raster to plot faster at lower resolution (https://rasterio.readthedocs.io/en/latest/topics/overviews.html)
     #from rasterio.enums import Resampling
