@@ -14,16 +14,10 @@ def read_sim(filename):
     M = xr.open_dataset(filename)
     U = M.eastward_wind
     V = M.northward_wind
-    W = M.upward_air_velocity
-    Th = M.air_potential_temperature
-    TKE = M.specific_turbulent_kinetic_energy
     S = (U**2 + V**2)**0.5
     WD = (270-np.rad2deg(np.arctan2(V,U)))%360
-    WD.attrs['units'] = 'degrees from North'
-    WD.attrs['long_name'] = 'wind direction'
-    S.attrs['units'] = 'm s-1'
-    S.attrs['long_name'] = 'horizontal wind speed'
-    return U, V, W, Th, TKE, S, WD
+    M = M.assign(wind_speed = S, wind_direction = WD)
+    return M
 
 def read_obs(filename):
     M = xr.open_dataset(filename)
