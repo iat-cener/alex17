@@ -139,6 +139,49 @@
       "other": ""
     }
   },
+    {
+    "name": {
+      "default": "wind_from_direction_std",
+      "cf": "wind_from_direction_std",
+      "open_oa": "",
+      "iec_61400-25": "",
+      "lidaco": "",
+      "grib": "",
+      "other": []
+    },
+    "description": "Wind is defined as a two-dimensional (horizontal) air velocity vector, with no vertical component. (Vertical motion in the atmosphere has the standard name upward_air_velocity.) In meteorological reports, the direction of the wind vector is usually (but not always) given as the direction from which it is blowing (wind_from_direction) (westerly, northerly, etc.). In other contexts, such as atmospheric modelling, it is often natural to give the direction in the usual manner of vectors as the heading or the direction to which it is blowing (wind_to_direction) (eastward, southward, etc.) from_direction is used in the construction X_from_direction and indicates the direction from which the velocity vector of X is coming.",
+    "units": "",
+    "ref": {
+      "nvs": "http://vocab.nerc.ac.uk/collection/P07/current/CFSN0036/"
+    },
+    "netcdf": {
+      "var_type": "float",
+      "other": ""
+    }
+  },
+  {
+    "name": {
+      "default": "wind_speed_std",
+      "cf": "",
+      "open_oa": "",
+      "iec_61400-25": "",
+      "lidaco": "",
+      "grib": "",
+      "other": [
+        "ws",
+        "wind speed"
+      ]
+    },
+    "description": "Speed is the magnitude of velocity. Wind is defined as a two-dimensional (horizontal) air velocity vector, with no vertical component. (Vertical motion in the atmosphere has the standard name upward_air_velocity.) The wind speed is the magnitude of the wind velocity.",
+    "units": "",
+    "ref": {
+      "nvs": "http://vocab.nerc.ac.uk/collection/P07/current/CFSN0038/"
+    },
+    "netcdf": {
+      "var_type": "float",
+      "other": ""
+    }
+  },
   {
     "name": {
       "default": "longitude",

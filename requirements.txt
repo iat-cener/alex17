@@ -11,3 +11,4 @@ PyYAML
 rasterio
 numexpr
 numba
+matplotlib
