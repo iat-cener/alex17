@@ -167,7 +167,7 @@ def create_alex17_file_1(file_1_path, f_get_column, variables_to_write):
 
 
 def create_alex17_file_2(file_path, f_get_point, variables_to_write):
-    print('2. simID_xyt.nc:')
+    print('2. alex17_00a_box.nc:')
 
     utm_zone_number = 30
     utm_zone_letter = 'T'
@@ -225,8 +225,7 @@ def create_alex17_file_3(file_path, f_get_column, variables_to_write):
     # ---------------------------- create indexes
     # y - northing[m]
     sampling_locations = pd.read_csv('./inputs/validation_ZTransect_XYZ.csv')
-    sampling_locations.sort_values('northing[m]', inplace=True)
-    northing_index = sampling_locations['northing[m]'].values
+
     # time
     date_from = time_from_str("2018-09-30 00:00")
     date_to = time_from_str("2018-10-04 00:00")
@@ -240,19 +239,18 @@ def create_alex17_file_3(file_path, f_get_column, variables_to_write):
 
     # define the output file structure
     output_dataset = netCDF4.Dataset(file_path, 'w', format="NETCDF4")
-    variables_indexes = [time_index, height_index, northing_index]
-    variables_dimensions = ('time', 'height', 'northing')
+    variables_indexes = [sampling_locations['Name'].values, height_index, time_index]
+    variables_dimensions = ('id', 'height', 'time')
     variables = create_nc_file(output_dataset, variables_dimensions, variables_indexes, var_dict, variables_to_write)
     nc_global_attributes_from_yaml(output_dataset, './config/Marinet.yaml')
 
     # fill the output file with results
-    for i_y in range(len(northing_index)):
-        y = northing_index[i_y]
-        x = sampling_locations['easting[m]'][i_y]
-        (lat, lon) = utm.to_latlon(x, y, utm_zone_number, utm_zone_letter)
+    for index, row in sampling_locations.iterrows():
+        (lat, lon) = utm.to_latlon(float(row['easting[m]']), float(row['northing[m]']), utm_zone_number,
+                                   utm_zone_letter)
         column = f_get_column(lat, lon)  # (time, height, variables)
         column = column.interp(time=time_index)  # interpolate into the desired time resolution
         for v_i in range(len(variables_to_write)):
-            # (variables_name v_i)(time :, height :, northing i_y) = (time :, height :, variables v_i).T
-            variables[variables_to_write[v_i][0]][:, :, i_y] = column[:, :last_height_id, v_i]
+            # (variables_name v_i)(id index, height :, time:) = (time :, height :, variables v_i).T
+            variables[variables_to_write[v_i][0]][index, :, :] = column[:, :last_height_id, v_i].T
     output_dataset.close()
