@@ -3,8 +3,6 @@ lib/__pycache__/
 
 \.idea/
 
-*.nc
-
 inputs
 
 outputs
