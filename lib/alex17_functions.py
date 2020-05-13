@@ -6,6 +6,7 @@ import utm
 import xarray as xr
 import rasterio as rio
 import matplotlib.pyplot as plt 
+from matplotlib.colors import LightSource
 
 from lib.variables_dictionary.variables import Variables
 from lib.variables_dictionary.variables import nc_global_attributes_from_yaml
@@ -21,13 +22,11 @@ def read_sim(filename):
 
 def read_obs(filename):
     M = xr.open_dataset(filename)
-    S = M.wind_speed
-    WD = M.wind_from_direction
-    Sstd = M.wind_speed_std
-    return S, Sstd, WD
+    M = M.rename({'wind_from_direction': 'wind_direction'})
+    return M
 
 
-def basemap_plot(src, masts, Z_transect, ref, ax):
+def basemap_plot(src, masts, Ztransect, ref, ax, coord = 'utm'):
     # Add overviews to raster to plot faster at lower resolution (https://rasterio.readthedocs.io/en/latest/topics/overviews.html)
     #from rasterio.enums import Resampling
     #factors = [2, 4, 8, 16]
@@ -35,40 +34,58 @@ def basemap_plot(src, masts, Z_transect, ref, ax):
     #dst.build_overviews(factors, Resampling.average)
     #dst.update_tags(ns='rio_overview', resampling='average')
     #dst.close()
-    A_ind = Z_transect['Name'].str.contains('A') # Tajonar ridge scan
-    B_ind = Z_transect['Name'].str.contains('B') # Elortz valley scan
-    C_ind = Z_transect['Name'].str.contains('C') # Alaiz ridge scan
+    A_ind = Ztransect['Name'].str.contains('A') # Tajonar ridge scan
+    B_ind = Ztransect['Name'].str.contains('B') # Elortz valley scan
+    C_ind = Ztransect['Name'].str.contains('C') # Alaiz ridge scan
     oview = src.overviews(1)[2] # choose overview (0 is largest, -1 is the smallest)
     topo = src.read(1, out_shape=(1, int(src.height // oview), int(src.width // oview)))
-    spatial_extent = [src.bounds.left - ref[0], src.bounds.right - ref[0], src.bounds.bottom - ref[1], src.bounds.top - ref[1]]
+    if coord == 'xy':
+        spatial_extent = [src.bounds.left - ref[0], src.bounds.right - ref[0], src.bounds.bottom - ref[1], src.bounds.top - ref[1]]
+    else:
+        spatial_extent = [src.bounds.left, src.bounds.right, src.bounds.bottom, src.bounds.top]
+        
     topo_ma = np.ma.masked_where(topo == 0 , topo, copy=True) 
-    topo_ma.shape
-    h_topo = ax.imshow(topo_ma, cmap='terrain', extent=spatial_extent, vmin=300, vmax=1200) #[left, right, bottom, top]
-    h_masts = ax.scatter(masts['x'], masts['y'], s = 10, marker='s', c='k', label = 'Masts')
-    h_A = ax.scatter(Z_transect[A_ind]['x'], Z_transect[A_ind]['y'], s = 2, marker='.', c='blue', label = 'A-transect')
-    h_B = ax.scatter(Z_transect[B_ind]['x'], Z_transect[B_ind]['y'], s = 2, marker='.', c='black', label = 'B-transect')
-    h_C = ax.scatter(Z_transect[C_ind]['x'], Z_transect[C_ind]['y'], s = 2, marker='.', c='red', label = 'C-transect')
-    for i, txt in enumerate(masts['Name']):
-        ax.annotate(txt, (masts['x'][i]+50, masts['y'][i]+50))   
+#    ls = LightSource(azdeg=315, altdeg=60)
+#    rgb = ls.shade(topo_ma, cmap=plt.cm.terrain, blend_mode='overlay') 
+#    h_topo = ax.imshow(rgb, extent=spatial_extent, vmin=400, vmax=1200)
+    h_topo = ax.imshow(topo_ma, cmap = plt.cm.terrain, extent=spatial_extent, vmin=300, vmax=1200)
+    if coord == 'xy':
+        h_masts = ax.scatter(masts['x'], masts['y'], s = 10, marker='s', c='k', label = 'Masts')
+        h_A = ax.scatter(Ztransect[A_ind]['x'], Ztransect[A_ind]['y'], s = 2, marker='.', c='blue', label = 'A-transect')
+        h_B = ax.scatter(Ztransect[B_ind]['x'], Ztransect[B_ind]['y'], s = 2, marker='.', c='black', label = 'B-transect')
+        h_C = ax.scatter(Ztransect[C_ind]['x'], Ztransect[C_ind]['y'], s = 2, marker='.', c='red', label = 'C-transect')
+        for i, txt in enumerate(masts['Name']):
+            ax.annotate(txt, (masts['x'][i]+50, masts['y'][i]+50))   
+        ax.set_xlabel('x [m]')
+        ax.set_ylabel('y [m]')
+    else:
+        h_masts = ax.scatter(masts['easting[m]'], masts['northing[m]'], s = 10, marker='s', c='k', label = 'Masts')
+        h_A = ax.scatter(Ztransect[A_ind]['easting[m]'], Ztransect[A_ind]['northing[m]'], s = 2, marker='.', c='blue', label = 'A-transect')
+        h_B = ax.scatter(Ztransect[B_ind]['easting[m]'], Ztransect[B_ind]['northing[m]'], s = 2, marker='.', c='black', label = 'B-transect')
+        h_C = ax.scatter(Ztransect[C_ind]['easting[m]'], Ztransect[C_ind]['northing[m]'], s = 2, marker='.', c='red', label = 'C-transect')
+        for i, txt in enumerate(masts['Name']):
+            ax.annotate(txt, (masts['easting[m]'][i]+50, masts['northing[m]'][i]+50))   
+        ax.set_xlabel('Easting [m]')
+        ax.set_ylabel('Northing [m]')      
+            
     ax.set_title('ALEX17 sites')
-    ax.set_xlabel('x [m]')
-    ax.set_ylabel('y [m]')
+
     ax.legend(handles = [h_masts,h_A,h_B,h_C])
     plt.colorbar(h_topo, ax = ax)
     return [h_masts,h_A,h_B,h_C]
 
     
-def Ztransect_plot(masts, Z_transect, ax):
-    A_ind = Z_transect['Name'].str.contains('A') # Tajonar ridge scan
-    B_ind = Z_transect['Name'].str.contains('B') # Elortz valley scan
-    C_ind = Z_transect['Name'].str.contains('C') # Alaiz ridge scan
-    h_topoZ = (Z_transect['z']-125.).plot.area(stacked=False, color = 'lightgrey', alpha = 1, ax = ax)
-    h_topoA = Z_transect[A_ind]['z'].plot.line(style = '.', color = 'blue', ms = 3, ax = ax)
-    h_topoB = Z_transect[B_ind]['z'].plot.line(style = '.', color = 'black', ms = 3, ax = ax)
-    h_topoC = Z_transect[C_ind]['z'].plot.line(style = '.', color = 'red', ms = 3, ax = ax)
-    masts_inZ = [] # index of Z_transect position nearest to each mast
+def Ztransect_plot(masts, Ztransect, ax):
+    A_ind = Ztransect['Name'].str.contains('A') # Tajonar ridge scan
+    B_ind = Ztransect['Name'].str.contains('B') # Elortz valley scan
+    C_ind = Ztransect['Name'].str.contains('C') # Alaiz ridge scan
+    h_topoZ = (Ztransect['z']-125.).plot.area(stacked=False, color = 'lightgrey', alpha = 1, ax = ax)
+    h_topoA = Ztransect[A_ind]['z'].plot.line(style = '.', color = 'blue', ms = 3, ax = ax)
+    h_topoB = Ztransect[B_ind]['z'].plot.line(style = '.', color = 'black', ms = 3, ax = ax)
+    h_topoC = Ztransect[C_ind]['z'].plot.line(style = '.', color = 'red', ms = 3, ax = ax)
+    masts_inZ = [] # index of Ztransect position nearest to each mast
     for i, row in masts.iterrows():
-        d = np.sqrt((Z_transect['x'] - masts['x'][i])**2 + (Z_transect['y'] - masts['y'][i])**2)
+        d = np.sqrt((Ztransect['x'] - masts['x'][i])**2 + (Ztransect['y'] - masts['y'][i])**2)
         masts_inZ.append(d[d == d.min()].index[0])
     for x in masts_inZ:
         ax.axvline(x, color = 'silver', linestyle = '--', zorder = 0)
