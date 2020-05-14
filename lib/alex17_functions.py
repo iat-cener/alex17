@@ -22,6 +22,7 @@ def read_sim(filename):
 
 def read_obs(filename):
     M = xr.open_dataset(filename)
+    M = M.where(M <= 360) # nan when is greater than 360
     M = M.rename({'wind_from_direction': 'wind_direction'})
     return M
 
