@@ -26,6 +26,69 @@ def read_obs(filename):
     M = M.rename({'wind_from_direction': 'wind_direction'})
     return M
 
+def mast_sims_vs_obs_timeseries_plot(mast, h, masts_obs, masts_sim, sims, datefrom, dateto):
+    fig, (ax1,ax2,ax3) = plt.subplots(3,1,figsize = (14,9), sharex = True)
+    masts_obs.wind_speed.sel(id = mast, height = h).plot(x = 'time', label = 'obs', color = 'k', ax = ax1)
+    masts_obs.wind_direction.sel(id = mast, height = h).plot(x = 'time', label = 'obs', color = 'k', ax = ax2)
+    masts_obs.wind_shear.sel(id = mast).plot(x = 'time', label = 'obs', color = 'k', ax = ax3)
+    for i_sim in range (0,len(masts_sim)):
+        masts_sim[i_sim].wind_speed.sel(id = mast).interp(height= h).plot(x = 'time', label = sims['ID'][i_sim], ax = ax1)
+        masts_sim[i_sim].wind_direction.sel(id = mast).interp(height= h).plot(x = 'time', label = sims['ID'][i_sim], ax = ax2)
+        masts_sim[i_sim].wind_shear.sel(id = mast).plot(x = 'time', label = sims['ID'][i_sim], ax = ax3)
+    ax1.set_xlim([datefrom, dateto])
+    ax1.legend(bbox_to_anchor=(1.13, 1))
+    ax1.grid(); ax1.set_xlabel(''); ax1.set_ylabel(r'wind speed [$m s^{-1}$]')
+    ax2.grid(); ax2.set_xlabel(''); ax2.set_ylabel(r'wind direction [º]')
+    ax3.grid(); ax3.set_xlabel(''); ax3.set_ylabel(r'wind shear $\alpha(80/40)$')
+    return [ax1, ax2, ax3]
+
+def compare_masts_timeseries_plot(mast, h, masts_obs, datefrom, dateto):
+    fig, (ax1,ax2,ax3) = plt.subplots(3,1,figsize = (14,9), sharex = True)
+    masts_obs.wind_speed.sel(id = mast, height = h).plot(x = 'time', label = 'obs', hue = 'id', ax = ax1)
+    masts_obs.wind_direction.sel(id = mast, height = h).plot(x = 'time', label = 'obs', hue = 'id', ax = ax2)
+    masts_obs.wind_shear.sel(id = mast).plot(x = 'time', label = 'obs', hue = 'id', ax = ax3)
+    ax1.set_xlim([datefrom, dateto])
+    ax2.get_legend().remove(); ax3.get_legend().remove()
+    ax1.grid(); ax1.set_xlabel(''); ax1.set_ylabel(r'wind speed [$m s^{-1}$]')
+    ax2.grid(); ax2.set_xlabel(''); ax2.set_ylabel(r'wind direction [º]')
+    ax3.grid(); ax3.set_xlabel(''); ax3.set_ylabel(r'wind shear $\alpha(80/40)$'); #ax3.set_ylim([-1,1]);
+    return [ax1, ax2, ax3]
+
+def masts_sims_vs_obs_profiles_plot(t, masts_obs, masts_sim, sims, datefrom, dateto):
+    fig, axes = plt.subplots(2,4,figsize = (14,8), sharey = True, sharex = True)
+    masts = masts_obs.coords['id'].values.tolist()
+    for i, mast in enumerate(masts):
+        index = np.unravel_index(i,(2,4))
+        ax = axes[index]
+        for i_sim in range (0,len(masts_sim)):
+            h_sim = masts_sim[i_sim].wind_speed.sel(time = t, id = mast).plot(y = 'height', ax = axes[index],
+                                                                            label = sims['ID'][i_sim])
+        h_obs = masts_obs.wind_speed.sel(time = t, id = mast).plot(y = 'height', ax = axes[index], label = 'obs',
+                                                                 marker = 'o', linestyle='none', color = 'silver')
+        ax.set_ylabel(''); ax.set_xlabel(''); 
+        ax.set_ylim(1,1000)
+        ax.grid()
+    plt.yscale('symlog')
+    axes[(0,0)].set_ylabel('z [m]'); axes[(1,0)].set_ylabel('z [m]')
+    axes[(1,0)].set_xlabel('wind speed [$m s^{-1}$]'); axes[(1,1)].set_xlabel('wind speed [$m s^{-1}$]'); axes[(1,2)].set_xlabel('wind speed [$m s^{-1}$]')
+    axes[(1,3)].axis('off')
+    axes[(1,2)].legend(bbox_to_anchor=(1.13, 1))
+    return axes
+
+def Ztransect_sims_vs_obs_plot(t, Ztransect_obs, Ztransect_sim, masts, Ztransect):
+    fig, (ax1,ax2) = plt.subplots(2,1, figsize = (8,6), sharex = True)
+    Zprofile = Ztransect_plot(masts, Ztransect, ax2)
+    ax2.set_title('')
+    #for i_sim in range (0,n_sim):
+        #Ztransect_sim[i_sim].wind_speed.sel(height = h).plot(x = 'id', label = sims['ID'][i_sim], ax = ax1)
+    #ax1.legend(bbox_to_anchor=(1, 1))
+    masts_inZ = [] # index of Z_transect position nearest to each mast
+    for i, row in masts.iterrows():
+        d = np.sqrt((Ztransect['x'] - masts['x'][i])**2 + (Ztransect['y'] - masts['y'][i])**2)
+        masts_inZ.append(d[d == d.min()].index[0])
+    for x in masts_inZ:
+        ax1.axvline(x, color = 'silver', linestyle = '--', zorder = 0)
+    return [ax1, ax2]
 
 def basemap_plot(src, masts, Ztransect, ref, ax, coord = 'utm'):
     # Add overviews to raster to plot faster at lower resolution (https://rasterio.readthedocs.io/en/latest/topics/overviews.html)
