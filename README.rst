@@ -54,9 +54,9 @@ Benchmark participants can have access to a cloud benchmark environment at CSC's
 Please note that the instance will expire eventually and will not host your data. Any data or changes you have made during the session have to be downloaded is you want to keep them. 
 
 
-Data conversion instructions
-----------------------------
-A script has been provided to make the data conversion process as easy as possible. The standard way of using the scripts consists of the following steps:
+Output data converter
+---------------------
+A script is provided to make the data conversion process as easy as possible to comply with the requested data formatting and variable name conventions. The standard way of using the scripts consists of the following steps:
 
 1. Update the ``config/Marinet.yaml`` file.
 2. Edit the ``runALEX17.py`` file, making sure to provide it with functions that can extract your data for a given point and column.
