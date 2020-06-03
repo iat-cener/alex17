@@ -31,12 +31,6 @@ Data
 ----
 Benchmark input data and simulation data is published open-access in the following data repository: [zenodo dataset]
 
-Citation
---------
-You can cite the github repo in the following way:
-
-[zenodo github release]
-
 Installation
 ------------
 We use Jupyter notebooks based on Python 3. We recomend the `Anaconda distribution <https://www.anaconda.com/distribution/>`_ to install python. The libraries used by the notebooks can be installed with 
@@ -71,6 +65,12 @@ A script is provided to make the data conversion process as easy as possible to 
 	The expected output from the functions are labeled, xarray tables. An example of how to define those functions can be found here `get_point <https://github.com/iat-cener/alex17/blob/5f1fc540065f1e4b23114e42930fa5f5c7ca4965/lib/WrfReader.py#L322>`_ and `get_column <https://github.com/iat-cener/alex17/blob/5f1fc540065f1e4b23114e42930fa5f5c7ca4965/lib/WrfReader.py#L332>`_. If you don't feel confortable with xarrays, you can try hacking the script and copy the numbers directly to the generated output files `file1 <https://github.com/iat-cener/alex17/blob/5f1fc540065f1e4b23114e42930fa5f5c7ca4965/lib/alex17_functions.py#L82>`_, `file2 <https://github.com/iat-cener/alex17/blob/5f1fc540065f1e4b23114e42930fa5f5c7ca4965/lib/alex17_functions.py#L130>`_, `file3 <https://github.com/iat-cener/alex17/blob/5f1fc540065f1e4b23114e42930fa5f5c7ca4965/lib/alex17_functions.py#L174>`_. This approach is not advised as it will be prone to errors and most likelly it will be more time consuming than understanding the suggested approach).
 
 3. Finally, edit your [simID] representing your simulation identifier (should be provided to you).
+
+Citation
+--------
+You can cite the github repo in the following way:
+
+[zenodo github release]
 
 License
 -------
