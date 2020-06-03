@@ -23,6 +23,7 @@ The ALEX17 intensive campaign, where all the instruments were operational, laste
 Benchmark Guides
 ----------------
 The following blog posts were used to guide benchmark participants:
+
 * `Benchmark guide <https://thewindvaneblog.com/alex17-diurnal-cycles-benchmark-a-large-domain-in-complex-terrain-b5029e94485>`_  
 * `ALEX17 background <https://thewindvaneblog.com/the-alaiz-experiment-alex17-revealing-mountain-valley-large-scale-flow-patterns-6176416dbf2>`_  
 
@@ -40,9 +41,9 @@ Installation
 ------------
 We use Jupyter notebooks based on Python 3. We recomend the `Anaconda distribution <https://www.anaconda.com/distribution/>`_ to install python. The libraries used by the notebooks can be installed with 
 
-```bash
-pip install -r requirements.txt
-```
+.. code:: bash
+
+	$ pip install -r requirements.txt
 
 Benchmark participants can have access to a cloud benchmark environment at CSC's virtual research environment. To this end, please ask for an account to `Pawel Gancarski <mailto:pgancarski@cener.com>`_. Then: 
 
@@ -66,11 +67,7 @@ A script has been provided to make the data conversion process as easy as possib
 	f_get_column = wrf_inp.get_column  # (lat, lon) -> (time, height, variables)
 	f_get_point = wrf_inp.get_point  # (lat, lon, height) -> (time, variables)
 
-The expected output from the functions are labeled, xarray tables. An example of how to define those functions can be found here:
-[get_point](https://github.com/iat-cener/alex17/blob/5f1fc540065f1e4b23114e42930fa5f5c7ca4965/lib/WrfReader.py#L322)
-and [get_column](https://github.com/iat-cener/alex17/blob/5f1fc540065f1e4b23114e42930fa5f5c7ca4965/lib/WrfReader.py#L332).
-
-(If you don't feel confortable with xarrays, you can try hacking the script and copy the numbers directly to the generated output files [file1](https://github.com/iat-cener/alex17/blob/5f1fc540065f1e4b23114e42930fa5f5c7ca4965/lib/alex17_functions.py#L82), [file2](https://github.com/iat-cener/alex17/blob/5f1fc540065f1e4b23114e42930fa5f5c7ca4965/lib/alex17_functions.py#L130), [file3](https://github.com/iat-cener/alex17/blob/5f1fc540065f1e4b23114e42930fa5f5c7ca4965/lib/alex17_functions.py#L174). This approach is not advised as it will be prone to errors and most likelly it will be more time consuming then understanding the suggested approach).
+The expected output from the functions are labeled, xarray tables. An example of how to define those functions can be found here `get_point <https://github.com/iat-cener/alex17/blob/5f1fc540065f1e4b23114e42930fa5f5c7ca4965/lib/WrfReader.py#L322>`_ and `get_column <https://github.com/iat-cener/alex17/blob/5f1fc540065f1e4b23114e42930fa5f5c7ca4965/lib/WrfReader.py#L332>`_. If you don't feel confortable with xarrays, you can try hacking the script and copy the numbers directly to the generated output files `file1 <https://github.com/iat-cener/alex17/blob/5f1fc540065f1e4b23114e42930fa5f5c7ca4965/lib/alex17_functions.py#L82>`_, `file2 <https://github.com/iat-cener/alex17/blob/5f1fc540065f1e4b23114e42930fa5f5c7ca4965/lib/alex17_functions.py#L130>`_, `file3 <https://github.com/iat-cener/alex17/blob/5f1fc540065f1e4b23114e42930fa5f5c7ca4965/lib/alex17_functions.py#L174>`_. This approach is not advised as it will be prone to errors and most likelly it will be more time consuming than understanding the suggested approach).
 
 3. Finally, edit your [simID] representing your simulation identifier (should be provided to you).
 
