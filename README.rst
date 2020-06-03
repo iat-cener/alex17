@@ -39,12 +39,12 @@ We use Jupyter notebooks based on Python 3. We recomend the `Anaconda distributi
 
 	$ pip install -r requirements.txt
 
-Benchmark participants can have access to a cloud benchmark environment at CSC's virtual research environment. To this end, please 
+Benchmark participants can have access to a cloud benchmark environment at CSC's virtual research environment. To this end:
 
 1. Ask for an account to `Pawel Gancarski <mailto:pgancarski@cener.com>`_. 
-1. Log in at `CSC notebooks <https://notebooks.csc.fi/#/account>`_ through *Click here for alternate login*. 
-2. Click *Join Group* and use the following code: **alex17-xmcp2**
-3. Go to the `dashboard <https://notebooks.csc.fi/#/admin-dashboard>`_ and lauch a test notebook. It will take a few minutes to fetch all the data from the b2drop repository. Then it will give you an URL to the Jupyter instance. 
+2. Log in at `CSC notebooks <https://notebooks.csc.fi/#/account>`_ through *Click here for alternate login*. 
+3. Click *Join Group* and use the following code: **alex17-xmcp2**
+4. Go to the `dashboard <https://notebooks.csc.fi/#/admin-dashboard>`_ and lauch a test notebook. It will take a few minutes to fetch all the data from the b2drop repository. Then it will give you an URL to the Jupyter instance. 
 
 Please note that the instance will expire eventually and will not host your data. Any data or changes you have made during the session have to be downloaded is you want to keep them. 
 
