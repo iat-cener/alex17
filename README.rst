@@ -61,16 +61,15 @@ A script has been provided to make the data conversion process as easy as possib
 1. Update the ``config/Marinet.yaml`` file.
 2. Edit the ``runALEX17.py`` file, making sure to provide it with functions that can extract your data for a given point and column.
 
-.. code:: python
+	.. code:: python
 
-	wrf_inp = lib.WrfReader.WrfReader(variables_to_write)
-	f_get_column = wrf_inp.get_column  # (lat, lon) -> (time, height, variables)
-	f_get_point = wrf_inp.get_point  # (lat, lon, height) -> (time, variables)
+		wrf_inp = lib.WrfReader.WrfReader(variables_to_write)
+		f_get_column = wrf_inp.get_column  # (lat, lon) -> (time, height, variables)
+		f_get_point = wrf_inp.get_point  # (lat, lon, height) -> (time, variables)
 
-The expected output from the functions are labeled, xarray tables. An example of how to define those functions can be found here `get_point <https://github.com/iat-cener/alex17/blob/5f1fc540065f1e4b23114e42930fa5f5c7ca4965/lib/WrfReader.py#L322>`_ and `get_column <https://github.com/iat-cener/alex17/blob/5f1fc540065f1e4b23114e42930fa5f5c7ca4965/lib/WrfReader.py#L332>`_. If you don't feel confortable with xarrays, you can try hacking the script and copy the numbers directly to the generated output files `file1 <https://github.com/iat-cener/alex17/blob/5f1fc540065f1e4b23114e42930fa5f5c7ca4965/lib/alex17_functions.py#L82>`_, `file2 <https://github.com/iat-cener/alex17/blob/5f1fc540065f1e4b23114e42930fa5f5c7ca4965/lib/alex17_functions.py#L130>`_, `file3 <https://github.com/iat-cener/alex17/blob/5f1fc540065f1e4b23114e42930fa5f5c7ca4965/lib/alex17_functions.py#L174>`_. This approach is not advised as it will be prone to errors and most likelly it will be more time consuming than understanding the suggested approach).
+	The expected output from the functions are labeled, xarray tables. An example of how to define those functions can be found here `get_point <https://github.com/iat-cener/alex17/blob/5f1fc540065f1e4b23114e42930fa5f5c7ca4965/lib/WrfReader.py#L322>`_ and `get_column <https://github.com/iat-cener/alex17/blob/5f1fc540065f1e4b23114e42930fa5f5c7ca4965/lib/WrfReader.py#L332>`_. If you don't feel confortable with xarrays, you can try hacking the script and copy the numbers directly to the generated output files `file1 <https://github.com/iat-cener/alex17/blob/5f1fc540065f1e4b23114e42930fa5f5c7ca4965/lib/alex17_functions.py#L82>`_, `file2 <https://github.com/iat-cener/alex17/blob/5f1fc540065f1e4b23114e42930fa5f5c7ca4965/lib/alex17_functions.py#L130>`_, `file3 <https://github.com/iat-cener/alex17/blob/5f1fc540065f1e4b23114e42930fa5f5c7ca4965/lib/alex17_functions.py#L174>`_. This approach is not advised as it will be prone to errors and most likelly it will be more time consuming than understanding the suggested approach).
 
 3. Finally, edit your [simID] representing your simulation identifier (should be provided to you).
-
 
 License
 -------
