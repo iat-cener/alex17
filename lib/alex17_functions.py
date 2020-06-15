@@ -4,6 +4,7 @@ import datetime
 import netCDF4
 import utm
 import xarray as xr
+import math
 import rasterio as rio
 import matplotlib.pyplot as plt 
 from matplotlib.colors import LightSource
@@ -29,6 +30,16 @@ def read_obs(filename):
     M = M.interpolate_na(dim='height') # Fill nans with interpolated values between observational levels
     return M
 
+def vector_mean_std_wind_direction(WD):
+    U = -np.sin(2*np.pi*WD/360)
+    V = -np.cos(2*np.pi*WD/360)
+    Umean = np.mean(U)
+    Vmean = np.mean(V)
+    WDmean = 180 + math.atan2(Umean,Vmean)*180/np.pi
+    eps = np.sqrt(1 - (Umean**2 + Vmean**2))
+    WDstd = math.asin(eps)*(1 + (2./np.sqrt(3.) - 1)*eps**3)*180/np.pi # Yamartino (1984)
+    return WDmean, WDstd
+
 def events_qois_vs_masts_table(events,masts_obs,height):
     qois = ['wind_speed', 'wind_direction', 'turbulence_intensity',
                             'wind_shear','stability'] 
@@ -46,14 +57,17 @@ def events_qois_vs_masts_table(events,masts_obs,height):
     for e in events_name:
         for q in qois:
             for m in masts_obs.id.values.tolist():
-                if q == 'wind_speed' or q == 'wind_direction' or q == 'turbulence_intensity':
+                if q == 'wind_speed' or q == 'turbulence_intensity':
                     df.loc[idx[e, q], idx[m, 'mean']] = masts_obs[q].sel(id = m, height = height, 
                                                                          time = slice(events[e][0],events[e][1])).mean()
                     df.loc[idx[e, q], idx[m, 'std']] = masts_obs[q].sel(id = m, height = height, 
                                                                         time = slice(events[e][0],events[e][1])).std()
+                elif q == 'wind_direction':
+                    WD = masts_obs[q].sel(id = m, height = height, time = slice(events[e][0],events[e][1]))
+                    df.loc[idx[e, q], idx[m, 'mean']], df.loc[idx[e, q], idx[m, 'std']] = vector_mean_std_wind_direction(WD)
                 elif q == 'wind_shear':
                     df.loc[idx[e, q], idx[m, 'mean']] = masts_obs[q].sel(id = m, 
-                                                                         time = slice(events[e][0],events[e][1])).mean()
+                                                                        time = slice(events[e][0],events[e][1])).mean()
                     df.loc[idx[e, q], idx[m, 'std']] = masts_obs[q].sel(id = m, 
                                                                         time = slice(events[e][0],events[e][1])).std()
                 elif q == 'stability':
