@@ -27,12 +27,48 @@ def read_obs(filename):
     M = M.interpolate_na(dim='height') # Fill nans with interpolated values between observational levels
     return M
 
+def events_qois_vs_masts_table(events,masts_obs,height):
+    qois = ['wind_speed', 'wind_direction', 'turbulence_intensity',
+                            'wind_shear','stability'] 
+    events_name = list(events.keys())
+
+    index = pd.MultiIndex.from_product([list(events.keys()), qois],
+                                       names=['event', 'QoI'])
+    columns = pd.MultiIndex.from_product([masts_obs.id.values.tolist(), ['mean', 'std']],
+                                         names=['mast', ''])
+
+    # create the DataFrame
+    df = pd.DataFrame(np.random.randn(15, 14), index=index, columns=columns)
+    idx = pd.IndexSlice
+
+    for e in events_name:
+        for q in qois:
+            for m in masts_obs.id.values.tolist():
+                if q == 'wind_speed' or q == 'wind_direction' or q == 'turbulence_intensity':
+                    df.loc[idx[e, q], idx[m, 'mean']] = masts_obs[q].sel(id = m, height = height, 
+                                                                         time = slice(events[e][0],events[e][1])).mean()
+                    df.loc[idx[e, q], idx[m, 'std']] = masts_obs[q].sel(id = m, height = height, 
+                                                                        time = slice(events[e][0],events[e][1])).std()
+                elif q == 'wind_shear':
+                    df.loc[idx[e, q], idx[m, 'mean']] = masts_obs[q].sel(id = m, 
+                                                                         time = slice(events[e][0],events[e][1])).mean()
+                    df.loc[idx[e, q], idx[m, 'std']] = masts_obs[q].sel(id = m, 
+                                                                        time = slice(events[e][0],events[e][1])).std()
+                elif q == 'stability':
+                    df.loc[idx[e, q], idx[m, 'mean']] = masts_obs[q].sel(id = m, height = 10, 
+                                                                         time = slice(events[e][0],events[e][1])).mean()
+                    df.loc[idx[e, q], idx[m, 'std']] = masts_obs[q].sel(id = m, height = 10, 
+                                                                        time = slice(events[e][0],events[e][1])).std()
+    return df 
+
+                
 def mast_sims_vs_obs_timeseries_plot(mast, h, masts_obs, masts_sim, sims, datefrom, dateto, events):
-    fig, (ax1,ax2,ax3,ax4) = plt.subplots(4,1,figsize = (14,11), sharex = True)
+    fig, (ax1,ax2,ax3,ax4,ax5) = plt.subplots(5,1,figsize = (14,11), sharex = True)
     masts_obs.wind_speed.sel(id = mast, height = h).plot(x = 'time', label = 'obs', color = 'k', ax = ax1)
     masts_obs.wind_direction.sel(id = mast, height = h).plot(x = 'time', label = 'obs', color = 'k', ax = ax2)
     masts_obs.turbulence_intensity.sel(id = mast, height = h).plot(x = 'time', label = 'obs', color = 'k', ax = ax3)
     masts_obs.wind_shear.sel(id = mast).plot(x = 'time', label = 'obs', color = 'k', ax = ax4)
+    masts_obs.stability.sel(id = mast, height = 10).plot(x = 'time', label = 'obs', color = 'k', ax = ax5)
     for i_sim in range (0,len(masts_sim)):
         masts_sim[i_sim].wind_speed.sel(id = mast).interp(height= h).plot(x = 'time', label = sims['ID'][i_sim], ax = ax1)
         masts_sim[i_sim].wind_direction.sel(id = mast).interp(height= h).plot(x = 'time', label = sims['ID'][i_sim], ax = ax2)
@@ -44,32 +80,38 @@ def mast_sims_vs_obs_timeseries_plot(mast, h, masts_obs, masts_sim, sims, datefr
         ax2.axvspan(events[e][0], events[e][1], alpha=0.5, color=color_events[e])
         ax3.axvspan(events[e][0], events[e][1], alpha=0.5, color=color_events[e])
         ax4.axvspan(events[e][0], events[e][1], alpha=0.5, color=color_events[e])
+        ax5.axvspan(events[e][0], events[e][1], alpha=0.5, color=color_events[e])
     ax1.set_xlim([datefrom, dateto])
     ax1.legend(bbox_to_anchor=(1.13, 1))
     ax1.grid(); ax1.set_xlabel(''); ax1.set_ylabel(r'wind speed [$m s^{-1}$]')
     ax2.grid(); ax2.set_xlabel(''); ax2.set_ylabel(r'wind direction [º]')
-    ax3.grid(); ax3.set_xlabel(''); ax3.set_ylabel(r'turbulence intensity')
-    ax4.grid(); ax4.set_xlabel(''); ax4.set_ylabel(r'wind shear $\alpha(80/40)$')
-    return [ax1, ax2, ax3, ax4]
+    ax3.grid(); ax3.set_xlabel(''); ax3.set_ylabel(r'turbulence intensity'); ax3.set_ylim([0,0.6])
+    ax4.grid(); ax4.set_xlabel(''); ax4.set_ylabel(r'wind shear $\alpha(80/40)$'); ax4.set_ylim([-0.5,0.5])
+    ax5.grid(); ax5.set_xlabel(''); ax5.set_ylabel(r'stability $z/L$ ($z$=10m)'); ax5.set_ylim([-1,1])
+    return [ax1, ax2, ax3, ax4, ax5]
 
 def compare_masts_timeseries_plot(mast, h, masts_obs, datefrom, dateto, events):
-    fig, (ax1,ax2,ax3,ax4) = plt.subplots(4,1,figsize = (14,11), sharex = True)
-    masts_obs.wind_speed.sel(id = mast, height = h).plot(x = 'time', label = 'obs', hue = 'id', ax = ax1)
-    masts_obs.wind_direction.sel(id = mast, height = h).plot(x = 'time', label = 'obs', hue = 'id', ax = ax2)
-    masts_obs.turbulence_intensity.sel(id = mast, height = h).plot(x = 'time', label = 'obs', hue = 'id', ax = ax3)
-    masts_obs.wind_shear.sel(id = mast).plot(x = 'time', label = 'obs', hue = 'id', ax = ax4)
+    fig, (ax1,ax2,ax3,ax4,ax5) = plt.subplots(5,1,figsize = (14,11), sharex = True)
+    masts_obs.wind_speed.sel(id = mast, height = h).plot(x = 'time', hue = 'id', ax = ax1)
+    masts_obs.wind_direction.sel(id = mast, height = h).plot(x = 'time', hue = 'id', ax = ax2)
+    masts_obs.turbulence_intensity.sel(id = mast, height = h).plot(x = 'time', hue = 'id', ax = ax3)
+    masts_obs.wind_shear.sel(id = mast).plot(x = 'time', hue = 'id', ax = ax4)
+    masts_obs.stability.sel(id = mast, height = 10.).plot(x = 'time', hue = 'id', ax = ax5)
     color_events = {'neutral': 'silver', 'unstable': 'salmon','stable': 'lightblue'}
     for e in events:
         ax1.axvspan(events[e][0], events[e][1], alpha=0.5, color=color_events[e])
         ax2.axvspan(events[e][0], events[e][1], alpha=0.5, color=color_events[e])
         ax3.axvspan(events[e][0], events[e][1], alpha=0.5, color=color_events[e])
         ax4.axvspan(events[e][0], events[e][1], alpha=0.5, color=color_events[e])
+        ax5.axvspan(events[e][0], events[e][1], alpha=0.5, color=color_events[e])
     ax1.set_xlim([datefrom, dateto])
-    ax2.get_legend().remove(); ax3.get_legend().remove(); ax4.get_legend().remove()
+    #ax1.legend(bbox_to_anchor=(1.13, 1))
+    ax2.get_legend().remove(); ax3.get_legend().remove(); ax4.get_legend().remove(); ax5.get_legend().remove()
     ax1.grid(); ax1.set_xlabel(''); ax1.set_ylabel(r'wind speed [$m s^{-1}$]')
     ax2.grid(); ax2.set_xlabel(''); ax2.set_ylabel(r'wind direction [º]')
-    ax3.grid(); ax3.set_xlabel(''); ax3.set_ylabel(r'turbulence intensity [-]')
-    ax4.grid(); ax4.set_xlabel(''); ax4.set_ylabel(r'wind shear $\alpha(80/40)$'); #ax3.set_ylim([-1,1]);
+    ax3.grid(); ax3.set_xlabel(''); ax3.set_ylabel(r'turbulence intensity [-]'); ax3.set_ylim([0,0.6])
+    ax4.grid(); ax4.set_xlabel(''); ax4.set_ylabel(r'wind shear $\alpha(80/40)$'); ax4.set_ylim([-0.5,0.5])
+    ax5.grid(); ax5.set_xlabel(''); ax5.set_ylabel(r'stability $z/L$ ($z$=10m)'); ax5.set_ylim([-1,1])
     return [ax1, ax2, ax3, ax4]
 
 def masts_sims_vs_obs_profiles_plot(event, masts_obs, masts_sim, sims):
