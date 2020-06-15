@@ -173,7 +173,7 @@ class WrfReader:
     @jit(forceobj=True)
     def get_indexes(self, lat, lon, height):
         i_lon, i_lat = ll_to_xy(self.input_file, lat, lon)
-        i_h = np.searchsorted(self.heights, height)
+        i_h = np.searchsorted(self.heights, height) - 1
         i_lat = i_lat - self.min_i_lat
         i_lon = i_lon - self.min_i_lon
         return i_lat, i_lon, i_h
