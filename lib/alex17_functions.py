@@ -24,6 +24,8 @@ def read_obs(filename):
     M = xr.open_dataset(filename)
     #M = M.where(M <= 360) # nan when is greater than 360
     M = M.rename({'wind_from_direction': 'wind_direction'})
+    M = M.rename({'specific_turbulent_kinetic_energy': 'turbulent_kinetic_energy'})
+    M = M.rename({'specific_upward_sensible_heat_flux_in_air': 'heat_flux'})
     M = M.interpolate_na(dim='height') # Fill nans with interpolated values between observational levels
     return M
 
@@ -38,7 +40,7 @@ def events_qois_vs_masts_table(events,masts_obs,height):
                                          names=['mast', ''])
 
     # create the DataFrame
-    df = pd.DataFrame(np.random.randn(15, 14), index=index, columns=columns)
+    df = pd.DataFrame(np.random.randn(len(events_name)*len(qois), len(masts_obs.id)*2), index=index, columns=columns)
     idx = pd.IndexSlice
 
     for e in events_name:
@@ -63,24 +65,26 @@ def events_qois_vs_masts_table(events,masts_obs,height):
 
                 
 def mast_sims_vs_obs_timeseries_plot(mast, h, masts_obs, masts_sim, sims, datefrom, dateto, events):
-    fig, (ax1,ax2,ax3,ax4,ax5) = plt.subplots(5,1,figsize = (14,11), sharex = True)
+    fig, (ax1,ax2,ax3,ax4,ax5,ax6) = plt.subplots(6,1,figsize = (14,14), sharex = True)
     masts_obs.wind_speed.sel(id = mast, height = h).plot(x = 'time', label = 'obs', color = 'k', ax = ax1)
     masts_obs.wind_direction.sel(id = mast, height = h).plot(x = 'time', label = 'obs', color = 'k', ax = ax2)
     masts_obs.turbulence_intensity.sel(id = mast, height = h).plot(x = 'time', label = 'obs', color = 'k', ax = ax3)
     masts_obs.wind_shear.sel(id = mast).plot(x = 'time', label = 'obs', color = 'k', ax = ax4)
     masts_obs.stability.sel(id = mast, height = 10).plot(x = 'time', label = 'obs', color = 'k', ax = ax5)
+    masts_obs.heat_flux.sel(id = mast, height = 10).plot(x = 'time', label = 'obs', color = 'k', ax = ax6)
     for i_sim in range (0,len(masts_sim)):
         masts_sim[i_sim].wind_speed.sel(id = mast).interp(height= h).plot(x = 'time', label = sims['ID'][i_sim], ax = ax1)
         masts_sim[i_sim].wind_direction.sel(id = mast).interp(height= h).plot(x = 'time', label = sims['ID'][i_sim], ax = ax2)
         masts_sim[i_sim].turbulence_intensity.sel(id = mast).interp(height= h).plot(x = 'time', label = sims['ID'][i_sim], ax = ax3)
         masts_sim[i_sim].wind_shear.sel(id = mast).plot(x = 'time', label = sims['ID'][i_sim], ax = ax4)
-    color_events = {'neutral': 'silver', 'unstable': 'salmon','stable': 'lightblue'}
+    color_events = {'neutral': 'silver', 'unstable': 'salmon','stable': 'lightblue', 'very stable': 'deepskyblue'}
     for e in events:
         ax1.axvspan(events[e][0], events[e][1], alpha=0.5, color=color_events[e])
         ax2.axvspan(events[e][0], events[e][1], alpha=0.5, color=color_events[e])
         ax3.axvspan(events[e][0], events[e][1], alpha=0.5, color=color_events[e])
         ax4.axvspan(events[e][0], events[e][1], alpha=0.5, color=color_events[e])
         ax5.axvspan(events[e][0], events[e][1], alpha=0.5, color=color_events[e])
+        ax6.axvspan(events[e][0], events[e][1], alpha=0.5, color=color_events[e])
     ax1.set_xlim([datefrom, dateto])
     ax1.legend(bbox_to_anchor=(1.13, 1))
     ax1.grid(); ax1.set_xlabel(''); ax1.set_ylabel(r'wind speed [$m s^{-1}$]')
@@ -88,22 +92,25 @@ def mast_sims_vs_obs_timeseries_plot(mast, h, masts_obs, masts_sim, sims, datefr
     ax3.grid(); ax3.set_xlabel(''); ax3.set_ylabel(r'turbulence intensity'); ax3.set_ylim([0,0.6])
     ax4.grid(); ax4.set_xlabel(''); ax4.set_ylabel(r'wind shear $\alpha(80/40)$'); ax4.set_ylim([-0.5,0.5])
     ax5.grid(); ax5.set_xlabel(''); ax5.set_ylabel(r'stability $z/L$ ($z$=10m)'); ax5.set_ylim([-1,1])
-    return [ax1, ax2, ax3, ax4, ax5]
+    ax6.grid(); ax6.set_xlabel(''); ax6.set_ylabel(r'heat flux [$m K s^{-1}$]');# ax6.set_ylim([-1,1])
+    return [ax1, ax2, ax3, ax4, ax5, ax6]
 
 def compare_masts_timeseries_plot(mast, h, masts_obs, datefrom, dateto, events):
-    fig, (ax1,ax2,ax3,ax4,ax5) = plt.subplots(5,1,figsize = (14,11), sharex = True)
+    fig, (ax1,ax2,ax3,ax4,ax5,ax6) = plt.subplots(6,1,figsize = (14,14), sharex = True)
     masts_obs.wind_speed.sel(id = mast, height = h).plot(x = 'time', hue = 'id', ax = ax1)
     masts_obs.wind_direction.sel(id = mast, height = h).plot(x = 'time', hue = 'id', ax = ax2)
     masts_obs.turbulence_intensity.sel(id = mast, height = h).plot(x = 'time', hue = 'id', ax = ax3)
     masts_obs.wind_shear.sel(id = mast).plot(x = 'time', hue = 'id', ax = ax4)
     masts_obs.stability.sel(id = mast, height = 10.).plot(x = 'time', hue = 'id', ax = ax5)
-    color_events = {'neutral': 'silver', 'unstable': 'salmon','stable': 'lightblue'}
+    masts_obs.heat_flux.sel(id = mast, height = 10.).plot(x = 'time', hue = 'id', ax = ax6)
+    color_events = {'neutral': 'silver', 'unstable': 'salmon','stable': 'lightblue', 'very stable': 'deepskyblue'}
     for e in events:
         ax1.axvspan(events[e][0], events[e][1], alpha=0.5, color=color_events[e])
         ax2.axvspan(events[e][0], events[e][1], alpha=0.5, color=color_events[e])
         ax3.axvspan(events[e][0], events[e][1], alpha=0.5, color=color_events[e])
         ax4.axvspan(events[e][0], events[e][1], alpha=0.5, color=color_events[e])
         ax5.axvspan(events[e][0], events[e][1], alpha=0.5, color=color_events[e])
+        ax6.axvspan(events[e][0], events[e][1], alpha=0.5, color=color_events[e])
     ax1.set_xlim([datefrom, dateto])
     #ax1.legend(bbox_to_anchor=(1.13, 1))
     ax2.get_legend().remove(); ax3.get_legend().remove(); ax4.get_legend().remove(); ax5.get_legend().remove()
@@ -112,6 +119,7 @@ def compare_masts_timeseries_plot(mast, h, masts_obs, datefrom, dateto, events):
     ax3.grid(); ax3.set_xlabel(''); ax3.set_ylabel(r'turbulence intensity [-]'); ax3.set_ylim([0,0.6])
     ax4.grid(); ax4.set_xlabel(''); ax4.set_ylabel(r'wind shear $\alpha(80/40)$'); ax4.set_ylim([-0.5,0.5])
     ax5.grid(); ax5.set_xlabel(''); ax5.set_ylabel(r'stability $z/L$ ($z$=10m)'); ax5.set_ylim([-1,1])
+    ax6.grid(); ax6.set_xlabel(''); ax6.set_ylabel(r'heat flux [$m K s^{-1}$]');# ax6.set_ylim([-1,1])
     return [ax1, ax2, ax3, ax4]
 
 def masts_sims_vs_obs_profiles_plot(event, masts_obs, masts_sim, sims):
