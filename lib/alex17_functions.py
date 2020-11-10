@@ -13,12 +13,17 @@ from lib.variables_dictionary.variables import Variables
 from lib.variables_dictionary.variables import nc_global_attributes_from_yaml
 
 def read_sim(filename):
+    print(filename)
     M = xr.open_dataset(filename)
-    U = M.eastward_wind
-    V = M.northward_wind
-    S = (U**2 + V**2)**0.5
-    WD = (270-np.rad2deg(np.arctan2(V,U)))%360
-    M = M.assign(wind_speed = S, wind_direction = WD)
+    try: 
+        U = M.eastward_wind
+        V = M.northward_wind
+        S = (U**2 + V**2)**0.5
+        WD = (270-np.rad2deg(np.arctan2(V,U)))%360
+        M = M.assign(wind_speed = S, wind_direction = WD)
+    except AttributeError:
+        print('No U and V fields found')
+        
     return M
 
 def read_obs(filename):
