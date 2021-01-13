@@ -91,7 +91,7 @@ def mast_sims_vs_obs_timeseries_plot(mast, h, masts_obs, masts_sim, sims, datefr
     masts_obs.wind_shear.sel(id = mast).plot(x = 'time', label = 'obs', color = 'k', ax = ax4)
     masts_obs.stability.sel(id = mast, height = 10).plot(x = 'time', label = 'obs', color = 'k', ax = ax5)
     masts_obs.heat_flux.sel(id = mast, height = 10).plot(x = 'time', label = 'obs', color = 'k', ax = ax6)
-    for i_sim in range (0,len(masts_sim)):
+    for i_sim in range (0,len(masts_sim)): 
         masts_sim[i_sim].wind_speed.sel(id = mast).interp(height= h).plot(x = 'time', label = sims['ID'][i_sim], ax = ax1)
         masts_sim[i_sim].wind_direction.sel(id = mast).interp(height= h).plot(x = 'time', label = sims['ID'][i_sim], ax = ax2)
         masts_sim[i_sim].turbulence_intensity.sel(id = mast).interp(height= h).plot(x = 'time', label = sims['ID'][i_sim], ax = ax3)
@@ -105,13 +105,13 @@ def mast_sims_vs_obs_timeseries_plot(mast, h, masts_obs, masts_sim, sims, datefr
         ax5.axvspan(events[e][0], events[e][1], alpha=0.5, color=color_events[e])
         ax6.axvspan(events[e][0], events[e][1], alpha=0.5, color=color_events[e])
     ax1.set_xlim([datefrom, dateto])
-    ax1.legend(bbox_to_anchor=(1.13, 1))
-    ax1.grid(); ax1.set_xlabel(''); ax1.set_ylabel(r'wind speed [$m s^{-1}$]')
-    ax2.grid(); ax2.set_xlabel(''); ax2.set_ylabel(r'wind direction [º]')
-    ax3.grid(); ax3.set_xlabel(''); ax3.set_ylabel(r'turbulence intensity'); ax3.set_ylim([0,0.6])
-    ax4.grid(); ax4.set_xlabel(''); ax4.set_ylabel(r'wind shear $\alpha(80/40)$'); ax4.set_ylim([-0.5,0.5])
-    ax5.grid(); ax5.set_xlabel(''); ax5.set_ylabel(r'stability $z/L$ ($z$=10m)'); ax5.set_ylim([-1,1])
-    ax6.grid(); ax6.set_xlabel(''); ax6.set_ylabel(r'heat flux [$m K s^{-1}$]');# ax6.set_ylim([-1,1])
+    ax1.legend(bbox_to_anchor=(1.13, 1)) 
+    ax1.grid(); ax1.set_xlabel(''); ax1.set_ylabel(r'S [$m s^{-1}$]'); ax1.set_title("{} ({} m)".format(mast, h))
+    ax2.grid(); ax2.set_xlabel(''); ax2.set_ylabel(r'WD [º]'); ax2.set_title('')
+    ax3.grid(); ax3.set_xlabel(''); ax3.set_ylabel(r'TI'); ax3.set_ylim([0,0.7]); ax3.set_title('')
+    ax4.grid(); ax4.set_xlabel(''); ax4.set_ylabel(r'$\alpha (80/40)$'); ax4.set_ylim([-0.5,0.5]); ax4.set_title('')
+    ax5.grid(); ax5.set_xlabel(''); ax5.set_ylabel(r'$z/L$ ($z$=10m)'); ax5.set_ylim([-2,2]); ax5.set_title('')
+    ax6.grid(); ax6.set_xlabel(''); ax6.set_ylabel(r'wT [$m K s^{-1}$]'); ax6.set_title('')# ax6.set_ylim([-1,1])
     return [ax1, ax2, ax3, ax4, ax5, ax6]
 
 def compare_masts_timeseries_plot(mast, h, masts_obs, datefrom, dateto, events):
@@ -184,6 +184,9 @@ def basemap_plot(src, masts, Ztransect, ref, ax, coord = 'utm'):
     #dst.build_overviews(factors, Resampling.average)
     #dst.update_tags(ns='rio_overview', resampling='average')
     #dst.close()
+    
+    from mpl_toolkits.axes_grid1 import make_axes_locatable
+    
     A_ind = Ztransect['Name'].str.contains('A') # Tajonar ridge scan
     B_ind = Ztransect['Name'].str.contains('B') # Elortz valley scan
     C_ind = Ztransect['Name'].str.contains('C') # Alaiz ridge scan
@@ -219,9 +222,12 @@ def basemap_plot(src, masts, Ztransect, ref, ax, coord = 'utm'):
         ax.set_ylabel('Northing [m]')      
             
     ax.set_title('ALEX17 sites')
+    
+    divider = make_axes_locatable(ax)
+    cax = divider.append_axes("right", size="5%", pad=0.05)
 
     ax.legend(handles = [h_masts,h_A,h_B,h_C])
-    plt.colorbar(h_topo, ax = ax)
+    plt.colorbar(h_topo, ax = ax, cax = cax)
     return [h_masts,h_A,h_B,h_C]
 
     
