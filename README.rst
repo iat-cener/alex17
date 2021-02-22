@@ -2,6 +2,9 @@ ALEX17 Diurnal Cycles Benchmark: A Large Domain in Complex Terrain
 ===========================
 `Javier Sanz Rodrigo <mailto:jsrodrigo@cener.com>`_, `Pawel Gancarski <mailto:pgancarski@cener.com>`_, `Pedro Alvim De Azevedo Santos <mailto:paas@dtu.dk>`_
 
+Note 
+----
+As of 22 February 2021, the development of the alex17 repositoy will continue in the following fork: https://github.com/jsrodrigo/alex17
 
 Background 
 ----------
