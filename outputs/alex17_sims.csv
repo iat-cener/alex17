@@ -1,4 +1,8 @@
-ID,Plot,Highlight,Ensemble,Save,Participant Number,Participant,Model Name,Model Type,Input,Approach,Remarks,Label
-alex17_00a,1,1,0,1,0,CENER,WRF,mesoscale,ERA5,ts,Reference simulation for microscale models,WRFref_meso_ts
-alex17_69,1,1,0,1,1,UL Renewables,WRF-LES,meso-micro,ERA5,ts,Preliminary,WRF-LES_ts
-alex17_44,1,1,0,1,1,Meteodyn,Meteodyn MMC,meso-micro,GFS/FNL,ts,WRF-MeteodynWT_RANS,WRF-RANS_ts
+ID,Plot,Highlight,Ensemble,Save,Participant Number,Participant,Model Name,Input,dx [m],L [km],Remarks,Label
+alex17_00a,1,1,0,1,0,CENER,WRF,ERA5,3000,28?,Reference simulation for microscale models,WRF_3km
+alex17_666,1,1,0,1,666,UL Renewables,WRF,ERA5,333,28,Preliminary,WRF_333m
+alex17_69re,1,1,0,1,69,UL Renewables,WRF-LES,ERA5,111,9,Preliminary,WRF-LES_111m
+alex17_44,1,1,0,1,44,Meteodyn,Meteodyn MMC,GFS/FNL,50,20,Preliminary,WRF-MeteodynWT
+alex17_18,1,1,0,1,18,BSC,Alya-RANS,WRF,50,14,Preliminary,WRF-Alya-RANS
+alex17_20,1,1,0,1,20,DTU,EllipSys3D,WRF,50?,20?,QUICK,WRF-EllipSys3D_QUICK
+alex17_21,1,1,0,1,20,DTU,EllipSys3D,WRF,50?,20?,UDS,WRF-EllipSys3D_UDS

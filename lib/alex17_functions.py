@@ -13,16 +13,20 @@ from lib.variables_dictionary.variables import Variables
 from lib.variables_dictionary.variables import nc_global_attributes_from_yaml
 
 def read_sim(filename):
-    print(filename)
-    M = xr.open_dataset(filename)
-    try: 
-        U = M.eastward_wind
-        V = M.northward_wind
-        S = (U**2 + V**2)**0.5
-        WD = (270-np.rad2deg(np.arctan2(V,U)))%360
-        M = M.assign(wind_speed = S, wind_direction = WD)
-    except AttributeError:
-        print('No U and V fields found')
+    try:
+        M = xr.open_dataset(filename)
+        print(filename)
+        try: 
+            U = M.eastward_wind
+            V = M.northward_wind
+            S = (U**2 + V**2)**0.5
+            WD = (270-np.rad2deg(np.arctan2(V,U)))%360
+            M = M.assign(wind_speed = S, wind_direction = WD)
+        except AttributeError:
+            print('No U and V fields found')
+    except IOError:
+        M = np.nan
+        print(filename + ' is missing')
         
     return M
 
@@ -92,10 +96,10 @@ def mast_sims_vs_obs_timeseries_plot(mast, h, masts_obs, masts_sim, sims, datefr
     masts_obs.stability.sel(id = mast, height = 10).plot(x = 'time', label = 'obs', color = 'k', ax = ax5)
     masts_obs.heat_flux.sel(id = mast, height = 10).plot(x = 'time', label = 'obs', color = 'k', ax = ax6)
     for i_sim in range (0,len(masts_sim)): 
-        masts_sim[i_sim].wind_speed.sel(id = mast).interp(height= h).plot(x = 'time', label = sims['ID'][i_sim], ax = ax1)
-        masts_sim[i_sim].wind_direction.sel(id = mast).interp(height= h).plot(x = 'time', label = sims['ID'][i_sim], ax = ax2)
-        masts_sim[i_sim].turbulence_intensity.sel(id = mast).interp(height= h).plot(x = 'time', label = sims['ID'][i_sim], ax = ax3)
-        masts_sim[i_sim].wind_shear.sel(id = mast).plot(x = 'time', label = sims['ID'][i_sim], ax = ax4)
+        masts_sim[i_sim].wind_speed.sel(id = mast).interp(height= h).plot(x = 'time', label = sims['Label'][i_sim], ax = ax1)
+        masts_sim[i_sim].wind_direction.sel(id = mast).interp(height= h).plot(x = 'time', label = sims['Label'][i_sim], ax = ax2)
+        masts_sim[i_sim].turbulence_intensity.sel(id = mast).interp(height= h).plot(x = 'time', label = sims['Label'][i_sim], ax = ax3)
+        masts_sim[i_sim].wind_shear.sel(id = mast).plot(x = 'time', label = sims['Label'][i_sim], ax = ax4)
     color_events = {'neutral': 'silver', 'unstable': 'salmon','stable': 'lightblue', 'very stable': 'deepskyblue'}
     for e in events:
         ax1.axvspan(events[e][0], events[e][1], alpha=0.5, color=color_events[e])
@@ -148,7 +152,7 @@ def masts_sims_vs_obs_profiles_plot(event, masts_obs, masts_sim, sims):
         index = np.unravel_index(i,(2,4))
         ax = axes[index]
         for i_sim in range (0,len(masts_sim)):
-            h_sim = masts_sim[i_sim].wind_speed.sel(time = slice(event[0],event[1]), id = mast).mean(dim = 'time', skipna = True).plot(y = 'height', ax = axes[index], label = sims['ID'][i_sim])
+            h_sim = masts_sim[i_sim].wind_speed.sel(time = slice(event[0],event[1]), id = mast).mean(dim = 'time', skipna = True).plot(y = 'height', ax = axes[index], label = sims['Label'][i_sim])
         h_obs = masts_obs.wind_speed.sel(time = slice(event[0],event[1]), id = mast).mean(dim = 'time', skipna = True).plot(y = 'height', ax = axes[index], label = 'obs',
                                                         marker = 'o', linestyle='none', color = 'silver')
         ax.set_ylabel(''); ax.set_xlabel(''); 
